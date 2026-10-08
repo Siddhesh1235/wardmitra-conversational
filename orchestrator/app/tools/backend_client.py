@@ -3,6 +3,9 @@ import uuid
 import logging
 from typing import Optional, Dict, Any, List
 import httpx
+from dotenv import load_dotenv
+
+load_dotenv()
 
 from app.schemas.ai_inference import StructuredComplaintJSON
 
@@ -116,3 +119,33 @@ class WardMitraBackendClient:
                 return {"success": False, "status_code": res.status_code}
         except Exception as e:
             return {"success": False, "error": str(e)}
+
+    def get_recent_complaints_sync(self, limit: int = 25) -> List[Dict[str, Any]]:
+        """Fetch recent verified complaints from live backend to feed into duplicate detector."""
+        url = f"{self.base_url}/complaints"
+        headers = {}
+        if self.auth_token:
+            headers["Authorization"] = f"Bearer {self.auth_token}"
+        try:
+            with httpx.Client(timeout=self.timeout) as client:
+                res = client.get(url, headers=headers)
+                if res.status_code == 200:
+                    raw_data = res.json().get("data", [])
+                    formatted = []
+                    for item in raw_data[:limit]:
+                        loc = item.get("location")
+                        lat, lon = None, None
+                        if isinstance(loc, (list, tuple)) and len(loc) >= 2:
+                            lat, lon = float(loc[0]), float(loc[1])
+                        formatted.append({
+                            "id": item.get("id"),
+                            "category": str(item.get("category_id") or item.get("category", "")),
+                            "description": item.get("description") or item.get("title", ""),
+                            "latitude": lat or 19.228,
+                            "longitude": lon or 73.070
+                        })
+                    logger.info(f"Fetched {len(formatted)} historical complaints from backend for deduplication.")
+                    return formatted
+        except Exception as e:
+            logger.warning(f"Could not fetch recent complaints from backend ({e}). Fallback to local duplicate checking.")
+        return []

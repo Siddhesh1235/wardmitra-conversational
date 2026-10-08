@@ -13,6 +13,8 @@ from app.scoring.scoring_engine import SeverityScoringEngine
 
 logger = logging.getLogger(__name__)
 
+from concurrent.futures import ThreadPoolExecutor
+
 class AIInferenceDispatcher:
     """
     Central dispatcher orchestrating all 6 AI inference modules concurrently and synthesizing results.
@@ -25,6 +27,7 @@ class AIInferenceDispatcher:
         self.geo_service = GeoLookupService()
         self.duplicate_detector = DuplicateDetector()
         self.scoring_engine = SeverityScoringEngine()
+        self.executor = ThreadPoolExecutor(max_workers=5)
 
     def process(
         self,
@@ -38,18 +41,29 @@ class AIInferenceDispatcher:
     ) -> FullInferencePipelineOutput:
         logger.info(f"Dispatching AI Inference Pipeline for Citizen: {citizen_id}")
 
-        # 1. Profanity & Toxicity Check
-        profanity_res = self.profanity_checker.check_text(text)
+        # Concurrent execution of independent validation and intelligence modules
+        fut_prof = self.executor.submit(self.profanity_checker.check_text, text)
+        fut_nlp = self.executor.submit(self.nlp_analyzer.analyze, text)
+        fut_geo = self.executor.submit(self.geo_service.lookup_ward, latitude, longitude)
+
+        fut_mod = self.executor.submit(self.moderator.moderate_image, image_input) if image_input else None
+        fut_civic = self.executor.submit(self.civic_classifier.classify_image, image_input) if image_input else None
+
+        # Collect results in parallel
+        profanity_res = fut_prof.result()
+        nlp_res = fut_nlp.result()
+        geo_res = fut_geo.result()
+        moderation_res = fut_mod.result() if fut_mod else None
+        civic_res = fut_civic.result() if fut_civic else None
+
+        # 1. Profanity check gate
         if not profanity_res.is_clean:
             logger.warning(f"Profanity detected from citizen {citizen_id}: {profanity_res.profanity_found}")
-            # Flagged immediately
-            nlp_res = self.nlp_analyzer.analyze(text)
-            geo_res = self.geo_service.lookup_ward(latitude, longitude)
-            scoring_res = self.scoring_engine.calculate_score(nlp_res, None, None, geo_res)
+            scoring_res = self.scoring_engine.calculate_score(nlp_res, civic_res, None, geo_res)
             return FullInferencePipelineOutput(
                 success=False,
                 status="rejected",
-                moderation=self.moderator.moderate_image(image_input) if image_input else None,
+                moderation=moderation_res,
                 nlp=nlp_res,
                 profanity=profanity_res,
                 geo=geo_res,
@@ -59,39 +73,24 @@ class AIInferenceDispatcher:
                 rejection_reason="ABUSIVE_OR_INAPPROPRIATE_LANGUAGE"
             )
 
-        # 2. Content Moderation (NSFW / Violence)
-        moderation_res = None
-        civic_res = None
-        if image_input:
-            moderation_res = self.moderator.moderate_image(image_input)
-            if not moderation_res.is_safe:
-                logger.warning(f"Media content moderation failed: {moderation_res.flagged_reasons}")
-                nlp_res = self.nlp_analyzer.analyze(text)
-                geo_res = self.geo_service.lookup_ward(latitude, longitude)
-                scoring_res = self.scoring_engine.calculate_score(nlp_res, None, None, geo_res)
-                return FullInferencePipelineOutput(
-                    success=False,
-                    status="flagged",
-                    moderation=moderation_res,
-                    nlp=nlp_res,
-                    profanity=profanity_res,
-                    geo=geo_res,
-                    deduplication=self.duplicate_detector.evaluate_duplicate("", latitude, longitude, "", []),
-                    scoring=scoring_res,
-                    structured_complaint=None,
-                    rejection_reason="IMAGE_SAFETY_VIOLATION"
-                )
+        # 2. Content Moderation gate
+        if moderation_res and not moderation_res.is_safe:
+            logger.warning(f"Media content moderation failed: {moderation_res.flagged_reasons}")
+            scoring_res = self.scoring_engine.calculate_score(nlp_res, civic_res, None, geo_res)
+            return FullInferencePipelineOutput(
+                success=False,
+                status="flagged",
+                moderation=moderation_res,
+                nlp=nlp_res,
+                profanity=profanity_res,
+                geo=geo_res,
+                deduplication=self.duplicate_detector.evaluate_duplicate("", latitude, longitude, "", []),
+                scoring=scoring_res,
+                structured_complaint=None,
+                rejection_reason="IMAGE_SAFETY_VIOLATION"
+            )
 
-            # 3. Civic Classification with User's Trained YOLO Model
-            civic_res = self.civic_classifier.classify_image(image_input)
-
-        # 4. Multilingual NLP Analysis (Marathi + English)
-        nlp_res = self.nlp_analyzer.analyze(text)
-
-        # 5. Geo Reverse Lookup (GPS -> Ward ID)
-        geo_res = self.geo_service.lookup_ward(latitude, longitude)
-
-        # 6. Fraud & Duplicate Detection
+        # 3. Fraud & Duplicate Detection
         effective_category = civic_res.predicted_class if civic_res else nlp_res.extracted_category
         dup_res = self.duplicate_detector.evaluate_duplicate(
             new_category=effective_category,
@@ -101,7 +100,7 @@ class AIInferenceDispatcher:
             existing_complaints=existing_complaints or []
         )
 
-        # 7. Severity & Priority Scoring
+        # 4. Severity & Priority Scoring
         scoring_res = self.scoring_engine.calculate_score(
             nlp=nlp_res,
             civic=civic_res,
