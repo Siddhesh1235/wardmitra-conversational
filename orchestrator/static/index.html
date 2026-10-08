@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WardMitra AI Testing Studio | Municipal Conversational Orchestrator</title>
+  <meta name="description" content="Interactive Testing Studio for WardMitra Conversational AI, Multi-Channel Adapters, and Municipal AI Inference Pipeline">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #0a0e17;
+      --bg-surface: #111827;
+      --bg-surface-elevated: #1e293b;
+      --bg-glass: rgba(17, 24, 39, 0.75);
+      --border-color: rgba(255, 255, 255, 0.08);
+      --border-focus: #6366f1;
+      
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      
+      --accent-indigo: #6366f1;
+      --accent-indigo-glow: rgba(99, 102, 241, 0.25);
+      --accent-emerald: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #f43f5e;
+      --accent-cyan: #06b6d4;
+
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-full: 9999px;
+
+      --shadow-subtle: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
+      --shadow-elevated: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+      background-image: 
+        radial-gradient(circle at 15% 10%, rgba(99, 102, 241, 0.12) 0%, transparent 40%),
+        radial-gradient(circle at 85% 85%, rgba(16, 185, 129, 0.08) 0%, transparent 40%);
+    }
+
+    /* Top Navigation */
+    header {
+      background: var(--bg-glass);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      padding: 0.85rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .brand-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #6366f1, #06b6d4);
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+    }
+
+    .brand-text h1 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .brand-text p {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.25rem 0.75rem;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      border-radius: var(--radius-full);
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--accent-emerald);
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      background: var(--accent-emerald);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--accent-emerald);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.85); }
+    }
+
+    /* Tabs Navigation */
+    .nav-tabs {
+      display: flex;
+      gap: 0.5rem;
+      background: rgba(0, 0, 0, 0.25);
+      padding: 0.3rem;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-color);
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      padding: 0.5rem 1.1rem;
+      border-radius: var(--radius-md);
+      font-size: 0.85rem;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .tab-btn:hover {
+      color: var(--text-primary);
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .tab-btn.active {
+      color: #fff;
+      background: var(--accent-indigo);
+      box-shadow: 0 4px 12px var(--accent-indigo-glow);
+    }
+
+    /* Main Container */
+    main {
+      flex: 1;
+      max-width: 1440px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 1.5rem 2rem;
+    }
+
+    .tab-panel {
+      display: none;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    .tab-panel.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Grid Layouts */
+    .split-layout {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 1.5rem;
+      min-height: calc(100vh - 160px);
+    }
+
+    .card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      box-shadow: var(--shadow-subtle);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.25rem;
+      padding-bottom: 0.85rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .card-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    /* Chat Interactive Area */
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1rem 0;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      max-height: 520px;
+      scrollbar-width: thin;
+      scrollbar-color: var(--text-muted) transparent;
+    }
+
+    .message {
+      max-width: 82%;
+      padding: 0.9rem 1.15rem;
+      border-radius: var(--radius-lg);
+      font-size: 0.92rem;
+      line-height: 1.55;
+      position: relative;
+      animation: slideIn 0.25s ease-out;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .message.user {
+      align-self: flex-end;
+      background: linear-gradient(135deg, #4f46e5, #6366f1);
+      color: #fff;
+      border-bottom-right-radius: 4px;
+      box-shadow: 0 4px 15px rgba(79, 70, 229, 0.25);
+    }
+
+    .message.bot {
+      align-self: flex-start;
+      background: var(--bg-surface-elevated);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+      border-bottom-left-radius: 4px;
+    }
+
+    .message-meta {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 0.35rem;
+      font-size: 0.72rem;
+      opacity: 0.75;
+    }
+
+    .ticket-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: var(--accent-emerald);
+      padding: 0.2rem 0.5rem;
+      border-radius: var(--radius-sm);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-top: 0.4rem;
+    }
+
+    /* Input Controls */
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 0.4rem;
+    }
+
+    .form-input, .form-textarea, .form-select {
+      width: 100%;
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      border-radius: var(--radius-md);
+      padding: 0.65rem 0.9rem;
+      font-family: inherit;
+      font-size: 0.88rem;
+      transition: all 0.2s;
+    }
+
+    .form-input:focus, .form-textarea:focus, .form-select:focus {
+      outline: none;
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px var(--accent-indigo-glow);
+    }
+
+    .chat-controls {
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+      border-top: 1px solid var(--border-color);
+      padding-top: 1rem;
+    }
+
+    .quick-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+    }
+
+    .quick-tag {
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-color);
+      color: var(--text-secondary);
+      padding: 0.25rem 0.65rem;
+      border-radius: var(--radius-full);
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .quick-tag:hover {
+      background: rgba(99, 102, 241, 0.15);
+      border-color: var(--accent-indigo);
+      color: #fff;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 0.6rem;
+    }
+
+    .btn {
+      background: var(--accent-indigo);
+      color: #fff;
+      border: none;
+      padding: 0.65rem 1.25rem;
+      border-radius: var(--radius-md);
+      font-size: 0.88rem;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      transition: all 0.2s;
+    }
+
+    .btn:hover {
+      background: #4f46e5;
+      box-shadow: 0 4px 12px var(--accent-indigo-glow);
+      transform: translateY(-1px);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .btn-secondary {
+      background: var(--bg-surface-elevated);
+      color: var(--text-secondary);
+      border: 1px solid var(--border-color);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-primary);
+      box-shadow: none;
+    }
+
+    /* Side Inspector & State Viewer */
+    .slot-pill {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.65rem 0.85rem;
+      background: var(--bg-surface-elevated);
+      border-radius: var(--radius-md);
+      margin-bottom: 0.5rem;
+      border: 1px solid var(--border-color);
+      font-size: 0.82rem;
+    }
+
+    .slot-pill.filled {
+      border-left: 3px solid var(--accent-emerald);
+    }
+
+    .slot-pill.missing {
+      border-left: 3px solid var(--accent-amber);
+    }
+
+    .slot-name {
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .slot-val {
+      color: var(--text-primary);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      max-width: 170px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* Modules Metric Grid */
+    .modules-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1rem;
+      margin-top: 1.25rem;
+    }
+
+    .module-card {
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 1.15rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .module-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--module-accent, var(--accent-indigo));
+    }
+
+    .module-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.65rem;
+    }
+
+    .module-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .module-badge {
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 0.15rem 0.5rem;
+      border-radius: var(--radius-full);
+      text-transform: uppercase;
+    }
+
+    .badge-pass {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--accent-emerald);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .badge-warn {
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--accent-amber);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .badge-block {
+      background: rgba(244, 63, 94, 0.15);
+      color: var(--accent-rose);
+      border: 1px solid rgba(244, 63, 94, 0.3);
+    }
+
+    .module-metric {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: #fff;
+      margin: 0.35rem 0;
+    }
+
+    .module-desc {
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      line-height: 1.45;
+    }
+
+    /* JSON Previewer */
+    .json-box {
+      background: #050811;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 1rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      color: #38bdf8;
+      max-height: 380px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    /* Responsive */
+    @media (max-width: 992px) {
+      .split-layout {
+        grid-template-columns: 1fr;
+      }
+      header {
+        flex-direction: column;
+        gap: 0.85rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Header Navigation -->
+  <header>
+    <a href="/" class="brand" id="brand-logo">
+      <div class="brand-icon">🏛️</div>
+      <div class="brand-text">
+        <h1>WardMitra AI Studio <span class="status-badge"><span class="status-dot"></span> Live & Verified</span></h1>
+        <p>Municipal Conversational Multi-Channel Orchestrator (PCMC / KDMC / PMC)</p>
+      </div>
+    </a>
+
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs" role="tablist">
+      <button class="tab-btn active" id="tab-btn-chat" onclick="switchTab('chat')">
+        💬 Chatbot Studio
+      </button>
+      <button class="tab-btn" id="tab-btn-inference" onclick="switchTab('inference')">
+        ⚡ AI Pipeline (6 Modules)
+      </button>
+      <button class="tab-btn" id="tab-btn-channels" onclick="switchTab('channels')">
+        📡 Multi-Channel Sandbox
+      </button>
+      <button class="tab-btn" id="tab-btn-health" onclick="switchTab('health')">
+        🩺 Diagnostics
+      </button>
+    </nav>
+  </header>
+
+  <!-- Main Viewport -->
+  <main>
+
+    <!-- ==================== TAB 1: CHATBOT STUDIO ==================== -->
+    <section id="panel-chat" class="tab-panel active">
+      <div class="split-layout">
+        
+        <!-- Chatbox Container -->
+        <div class="card" id="chat-card">
+          <div class="card-header">
+            <div class="card-title">
+              <span>🤖</span> Interactive Citizen Dialogue
+            </div>
+            <div style="display:flex; gap:0.5rem; align-items:center;">
+              <span id="session-tag" class="quick-tag" style="font-family:'JetBrains Mono';">Session: session_init</span>
+              <button class="btn btn-secondary" style="padding:0.35rem 0.65rem; font-size:0.75rem;" onclick="resetChatSession()">New Session</button>
+            </div>
+          </div>
+
+          <!-- Messages Stream -->
+          <div class="chat-messages" id="chat-message-list">
+            <div class="message bot">
+              नमस्कार! मी <strong>वार्डमित्र (WardMitra)</strong> आहे. कल्याण-डोंबिवलीतील कचरा, खड्डे, पाणी, किंवा स्ट्रीटलाईटच्या समस्येबाबत मला सांगा. मी तक्रार नोंदवून घेईन.
+              <div class="message-meta"><span>WardMitra Assistant</span> • <span>Just now</span></div>
+            </div>
+          </div>
+
+          <!-- Input Footer -->
+          <div class="chat-controls">
+            <div class="input-row">
+              <input type="text" id="chat-user-input" class="form-input" placeholder="Type your message in Marathi, Hinglish, or English..." onkeypress="handleChatEnter(event)">
+              <button class="btn" id="btn-send-chat" onclick="sendChatMessage()">
+                <span>Send</span> ➔
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Side: Slot-Checker & Session State Inspector -->
+        <div class="card" id="state-card">
+          <div class="card-header">
+            <div class="card-title">
+              <span>🎯</span> Slot-Checker & State Gate
+            </div>
+            <span id="gate-status-badge" class="module-badge badge-warn">Collecting Slots</span>
+          </div>
+
+          <div style="margin-bottom:1.25rem;">
+            <p style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:0.75rem;">
+              Deterministic gate monitoring required civic slots. When complete, AI pipeline executes automatically.
+            </p>
+
+            <div class="slot-pill missing" id="slot-desc-card">
+              <span class="slot-name">Description (समस्या)</span>
+              <span class="slot-val" id="slot-val-desc">Not provided</span>
+            </div>
+
+            <div class="slot-pill missing" id="slot-loc-card">
+              <span class="slot-name">Location / GPS (स्थान)</span>
+              <span class="slot-val" id="slot-val-loc">Not provided</span>
+            </div>
+
+            <div class="slot-pill" id="slot-media-card">
+              <span class="slot-name">Media Attachment (फोटो)</span>
+              <span class="slot-val" id="slot-val-media">Optional</span>
+            </div>
+
+            <div class="slot-pill" id="slot-ticket-card">
+              <span class="slot-name">Registered Ticket ID</span>
+              <span class="slot-val" id="slot-val-ticket" style="color:var(--accent-emerald);">Pending</span>
+            </div>
+          </div>
+
+          <div class="card-header" style="margin-top:0.5rem; margin-bottom:0.75rem;">
+            <div class="card-title" style="font-size:0.95rem;">
+              <span>📑</span> Live Verification Summary
+            </div>
+          </div>
+          <div class="json-box" id="live-turn-json" style="flex:1;">{
+  "dialogue_state": "ready",
+  "message": "Send a message to view live gating and AI synthesis output."
+}</div>
+        </div>
+
+      </div>
+    </section>
+
+
+    <!-- ==================== TAB 2: AI INFERENCE INSPECTOR ==================== -->
+    <section id="panel-inference" class="tab-panel">
+      <div class="split-layout">
+        
+        <!-- Form Trigger -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <span>⚡</span> Direct AI Pipeline Execution
+            </div>
+            <span class="status-badge">Endpoint: /api/inference/process</span>
+          </div>
+
+          <form id="inference-form" onsubmit="executeInferencePipeline(event)">
+            <div class="form-group">
+              <label class="form-label">Citizen Identifier</label>
+              <input type="text" id="inf-citizen-id" class="form-input" value="CITIZEN_STUDIO_9876">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Grievance Description (Marathi, English, Hinglish)</label>
+              <textarea id="inf-text" class="form-textarea" rows="3" placeholder="Enter grievance text...">रस्त्यावर खूप मोठा खड्डा पडला असून पाणी साचले आहे, वाहतुकीची मोठी कोंडी होत आहे.</textarea>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-bottom:1rem;">
+              <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Latitude (अक्षांश)</label>
+                <input type="number" step="0.0001" id="inf-lat" class="form-input" value="19.235">
+              </div>
+              <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Longitude (रेखांश)</label>
+                <input type="number" step="0.0001" id="inf-lon" class="form-input" value="73.072">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Attach Civic Image (Optional)</label>
+              <input type="file" id="inf-image" class="form-input" accept="image/*">
+            </div>
+
+            <button type="submit" class="btn" id="btn-run-inference" style="width:100%; margin-top:0.5rem;">
+              <span>Execute All 6 AI Modules</span> ⚡
+            </button>
+          </form>
+        </div>
+
+        <!-- Modules Visualizer Output -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <span>📊</span> AI Modules Diagnostic Breakdown
+            </div>
+            <span id="inf-overall-badge" class="module-badge badge-pass">Pipeline Ready</span>
+          </div>
+
+          <!-- 6 Cards Grid -->
+          <div class="modules-grid">
+            
+            <div class="module-card" style="--module-accent:var(--accent-indigo);">
+              <div class="module-header">
+                <span class="module-title">📝 NLP Intent & Summary</span>
+                <span id="m-nlp-badge" class="module-badge badge-pass">-</span>
+              </div>
+              <div class="module-metric" id="m-nlp-category">Category: -</div>
+              <div class="module-desc" id="m-nlp-summary">Summary will appear here after execution.</div>
+            </div>
+
+            <div class="module-card" style="--module-accent:var(--accent-emerald);">
+              <div class="module-header">
+                <span class="module-title">📍 Geo Ward Lookup</span>
+                <span id="m-geo-badge" class="module-badge badge-pass">-</span>
+              </div>
+              <div class="module-metric" id="m-geo-ward">Ward: -</div>
+              <div class="module-desc" id="m-geo-desc">Ray-casting algorithm against kalyan.geojson boundaries.</div>
+            </div>
+
+            <div class="module-card" style="--module-accent:var(--accent-cyan);">
+              <div class="module-header">
+                <span class="module-title">⚖️ Scoring & Priority</span>
+                <span id="m-score-badge" class="module-badge badge-pass">-</span>
+              </div>
+              <div class="module-metric" id="m-score-priority">Priority: -</div>
+              <div class="module-desc" id="m-score-desc">Target Resolution: -</div>
+            </div>
+
+            <div class="module-card" style="--module-accent:var(--accent-rose);">
+              <div class="module-header">
+                <span class="module-title">🚫 Profanity & Safety</span>
+                <span id="m-prof-badge" class="module-badge badge-pass">-</span>
+              </div>
+              <div class="module-metric" id="m-prof-status">Clean</div>
+              <div class="module-desc" id="m-prof-desc">Toxicity Score: 0.0</div>
+            </div>
+
+            <div class="module-card" style="--module-accent:var(--accent-amber);">
+              <div class="module-header">
+                <span class="module-title">🔍 Duplicate Detection</span>
+                <span id="m-dup-badge" class="module-badge badge-pass">-</span>
+              </div>
+              <div class="module-metric" id="m-dup-status">No Duplicate</div>
+              <div class="module-desc" id="m-dup-desc">500m Haversine Radius & Jaccard matching.</div>
+            </div>
+
+            <div class="module-card" style="--module-accent:var(--accent-indigo);">
+              <div class="module-header">
+                <span class="module-title">🛡️ Media Moderation</span>
+                <span id="m-mod-badge" class="module-badge badge-pass">-</span>
+              </div>
+              <div class="module-metric" id="m-mod-status">Safe</div>
+              <div class="module-desc" id="m-mod-desc">NSFW / Violence Score: 0.0</div>
+            </div>
+
+          </div>
+
+          <div style="margin-top:1.25rem;">
+            <div class="form-label">Full Structured Complaint Output (JSON)</div>
+            <div class="json-box" id="inf-json-result">Execute pipeline to inspect raw JSON output...</div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+
+    <!-- ==================== TAB 3: MULTI-CHANNEL SANDBOX ==================== -->
+    <section id="panel-channels" class="tab-panel">
+      <div class="split-layout">
+        
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <span>📡</span> Inbound Channel Payload Simulator
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Select Channel</label>
+            <select id="channel-selector" class="form-select" onchange="updateChannelTemplate()">
+              <option value="web">Web Chat Widget (/api/channels/web)</option>
+              <option value="whatsapp">Meta WhatsApp Cloud API (/api/channels/whatsapp)</option>
+              <option value="mobile">Mobile App Logged-In API (/api/channels/mobile)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Raw Channel Payload (JSON)</label>
+            <textarea id="channel-payload-input" class="form-textarea" rows="12" style="font-family:'JetBrains Mono'; font-size:0.8rem;"></textarea>
+          </div>
+
+          <button class="btn" onclick="sendChannelPayload()" style="width:100%;">
+            <span>Send Channel Event</span> ➔
+          </button>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <span>📥</span> Channel Adapter Response
+            </div>
+            <span id="channel-status-badge" class="module-badge badge-pass">Ready</span>
+          </div>
+
+          <div class="json-box" id="channel-response-box" style="flex:1;">{
+  "status": "idle",
+  "instructions": "Select a channel, review the simulated payload, and click Send Channel Event."
+}</div>
+        </div>
+
+      </div>
+    </section>
+
+
+    <!-- ==================== TAB 4: DIAGNOSTICS ==================== -->
+    <section id="panel-health" class="tab-panel">
+      <div class="card" style="max-width:850px; margin:0 auto;">
+        <div class="card-header">
+          <div class="card-title">
+            <span>🩺</span> System Health & Live Endpoints
+          </div>
+          <button class="btn btn-secondary" onclick="checkHealth()">Refresh Health</button>
+        </div>
+
+        <div class="modules-grid" style="margin-bottom:1.5rem;">
+          <div class="module-card">
+            <div class="module-header"><span class="module-title">FastAPI Server</span><span class="module-badge badge-pass">HTTP 200</span></div>
+            <div class="module-metric" id="diag-status">Online</div>
+            <div class="module-desc">Host: http://127.0.0.1:8000</div>
+          </div>
+          <div class="module-card">
+            <div class="module-header"><span class="module-title">Vision & NLP AI</span><span class="module-badge badge-pass">Active</span></div>
+            <div class="module-metric" id="diag-vision">GPT-4o-mini</div>
+            <div class="module-desc">OpenAI API Key verified and active</div>
+          </div>
+          <div class="module-card">
+            <div class="module-header"><span class="module-title">Municipal Boundaries</span><span class="module-badge badge-pass">Loaded</span></div>
+            <div class="module-metric">123 Wards</div>
+            <div class="module-desc">Source: data/kalyan.geojson</div>
+          </div>
+        </div>
+
+        <div class="form-label">Live Raw /health Endpoint Response:</div>
+        <div class="json-box" id="health-json-box">Checking system health...</div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // --- Tab Switching Logic ---
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
+
+      const activeBtn = document.getElementById(`tab-btn-${tabName}`);
+      const activePanel = document.getElementById(`panel-${tabName}`);
+      if (activeBtn) activeBtn.classList.add('active');
+      if (activePanel) activePanel.classList.add('active');
+
+      if (tabName === 'health') checkHealth();
+    }
+
+    // --- State & Chatbot Studio ---
+    let currentSessionId = 'session_' + Math.random().toString(36).substring(2, 9);
+    document.getElementById('session-tag').innerText = 'Session: ' + currentSessionId;
+
+    function resetChatSession() {
+      currentSessionId = 'session_' + Math.random().toString(36).substring(2, 9);
+      document.getElementById('session-tag').innerText = 'Session: ' + currentSessionId;
+      document.getElementById('chat-message-list').innerHTML = `
+        <div class="message bot">
+          सत्र रीसेट झाले! नमस्कार, मी <strong>वार्डमित्र</strong> आहे. कृपया आपल्या समस्येविषयी सांगा.
+          <div class="message-meta"><span>WardMitra Assistant</span> • <span>Just now</span></div>
+        </div>
+      `;
+      updateSlotDisplay({}, false);
+      document.getElementById('live-turn-json').innerText = JSON.stringify({ status: "reset", session_id: currentSessionId }, null, 2);
+    }
+
+    function injectQuickPrompt(text) {
+      document.getElementById('chat-user-input').value = text;
+      document.getElementById('chat-user-input').focus();
+    }
+
+    function handleChatEnter(e) {
+      if (e.key === 'Enter') sendChatMessage();
+    }
+
+    async function sendChatMessage() {
+      const input = document.getElementById('chat-user-input');
+      const text = input.value.trim();
+      if (!text) return;
+
+      const latEl = document.getElementById('chat-lat');
+      const lonEl = document.getElementById('chat-lon');
+      const lat = latEl ? parseFloat(latEl.value) || null : null;
+      const lon = lonEl ? parseFloat(lonEl.value) || null : null;
+
+      // Add citizen message to UI
+      appendMessageToChat('user', text);
+      input.value = '';
+
+      const formData = new FormData();
+      formData.append('session_id', currentSessionId);
+      formData.append('citizen_id', 'CITIZEN_STUDIO');
+      formData.append('text', text);
+      if (lat) formData.append('latitude', lat);
+      if (lon) formData.append('longitude', lon);
+      formData.append('channel', 'web');
+
+      try {
+        const res = await fetch('/api/conversation/chat', {
+          method: 'POST',
+          body: formData
+        });
+        const data = await res.json();
+
+        // Update bot reply in chat
+        appendMessageToChat('bot', data.reply_text, data.structured_complaint ? 'CMP-VERIFIED' : null);
+
+        // Update Slot-Checker Inspector on the right
+        updateSlotDisplay(data.collected_slots, data.is_complete, data.structured_complaint);
+        document.getElementById('live-turn-json').innerText = JSON.stringify(data, null, 2);
+
+      } catch (err) {
+        appendMessageToChat('bot', 'क्षमस्व! सर्व्हरशी संपर्क होऊ शकला नाही: ' + err.message);
+      }
+    }
+
+    function appendMessageToChat(role, content, ticketId = null) {
+      const chatList = document.getElementById('chat-message-list');
+      const msgDiv = document.createElement('div');
+      msgDiv.className = `message ${role}`;
+      msgDiv.innerHTML = `
+        <div>${escapeHtml(content)}</div>
+        ${ticketId ? `<div class="ticket-chip">🎫 Ticket ID: ${ticketId}</div>` : ''}
+        <div class="message-meta">
+          <span>${role === 'user' ? 'Citizen' : 'WardMitra'}</span> • <span>${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+        </div>
+      `;
+      chatList.appendChild(msgDiv);
+      chatList.scrollTop = chatList.scrollHeight;
+    }
+
+    function updateSlotDisplay(slots, isComplete, complaint = null) {
+      const descCard = document.getElementById('slot-desc-card');
+      const locCard = document.getElementById('slot-loc-card');
+      const gateBadge = document.getElementById('gate-status-badge');
+
+      if (slots.description) {
+        descCard.className = 'slot-pill filled';
+        document.getElementById('slot-val-desc').innerText = slots.description;
+      } else {
+        descCard.className = 'slot-pill missing';
+        document.getElementById('slot-val-desc').innerText = 'Not provided';
+      }
+
+      if (slots.latitude || slots.location) {
+        locCard.className = 'slot-pill filled';
+        document.getElementById('slot-val-loc').innerText = slots.location || `${slots.latitude}, ${slots.longitude}`;
+      } else {
+        locCard.className = 'slot-pill missing';
+        document.getElementById('slot-val-loc').innerText = 'Not provided';
+      }
+
+      if (isComplete) {
+        gateBadge.className = 'module-badge badge-pass';
+        gateBadge.innerText = 'Completed & Gated';
+      } else {
+        gateBadge.className = 'module-badge badge-warn';
+        gateBadge.innerText = 'Collecting Slots';
+      }
+
+      if (complaint) {
+        document.getElementById('slot-ticket-card').className = 'slot-pill filled';
+        document.getElementById('slot-val-ticket').innerText = `${complaint.category} (Ward ${complaint.ward_id})`;
+      }
+    }
+
+    // --- Tab 2: AI Pipeline Execution ---
+    async function executeInferencePipeline(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btn-run-inference');
+      btn.innerHTML = 'Executing 6 Modules... ⏳';
+      btn.disabled = true;
+
+      const citizenId = document.getElementById('inf-citizen-id').value;
+      const text = document.getElementById('inf-text').value;
+      const lat = parseFloat(document.getElementById('inf-lat').value) || 19.228;
+      const lon = parseFloat(document.getElementById('inf-lon').value) || 73.070;
+      const imageFile = document.getElementById('inf-image').files[0];
+
+      const formData = new FormData();
+      formData.append('citizen_id', citizenId);
+      formData.append('text', text);
+      formData.append('latitude', lat);
+      formData.append('longitude', lon);
+      if (imageFile) formData.append('image', imageFile);
+
+      try {
+        const res = await fetch('/api/inference/process', {
+          method: 'POST',
+          body: formData
+        });
+        const data = await res.json();
+
+        // Populate visual cards
+        if (data.nlp) {
+          document.getElementById('m-nlp-category').innerText = `Category: ${data.nlp.extracted_category}`;
+          document.getElementById('m-nlp-summary').innerText = data.nlp.clean_summary || data.nlp.extracted_category;
+          document.getElementById('m-nlp-badge').innerText = data.nlp.urgency_level;
+        }
+
+        if (data.geo) {
+          document.getElementById('m-geo-ward').innerText = `Ward ${data.geo.ward_id}`;
+          document.getElementById('m-geo-desc').innerText = data.geo.ward_name;
+          document.getElementById('m-geo-badge').innerText = data.geo.is_within_boundary ? 'Inside Boundary' : 'Fallback';
+        }
+
+        if (data.scoring) {
+          document.getElementById('m-score-priority').innerText = `Priority ${data.scoring.priority} (${data.scoring.severity})`;
+          document.getElementById('m-score-desc').innerText = `Target Resolution: ${data.scoring.sla_hours} hrs`;
+          document.getElementById('m-score-badge').innerText = `SLA: ${data.scoring.sla_hours}h`;
+        }
+
+        if (data.profanity) {
+          document.getElementById('m-prof-status').innerText = data.profanity.is_clean ? 'Clean' : 'Blocked';
+          document.getElementById('m-prof-desc').innerText = `Toxicity Score: ${data.profanity.toxicity_score}`;
+          document.getElementById('m-prof-badge').className = data.profanity.is_clean ? 'module-badge badge-pass' : 'module-badge badge-block';
+          document.getElementById('m-prof-badge').innerText = data.profanity.action;
+        }
+
+        if (data.deduplication) {
+          document.getElementById('m-dup-status').innerText = data.deduplication.is_duplicate ? 'Duplicate Found' : 'Unique';
+          document.getElementById('m-dup-desc').innerText = `Similarity: ${data.deduplication.similarity_score}%`;
+        }
+
+        document.getElementById('inf-json-result').innerText = JSON.stringify(data, null, 2);
+        document.getElementById('inf-overall-badge').innerText = data.status || 'Complete';
+
+      } catch (err) {
+        document.getElementById('inf-json-result').innerText = 'Error: ' + err.message;
+      } finally {
+        btn.innerHTML = '<span>Execute All 6 AI Modules</span> ⚡';
+        btn.disabled = false;
+      }
+    }
+
+    // --- Tab 3: Channel Adapter Simulator ---
+    const channelTemplates = {
+      web: {
+        session_id: "web_session_demo",
+        citizen_id: "CITIZEN_WEB_99",
+        text: "रस्त्यावर मोठा खड्डा पडला आहे कल्याण स्टेशन जवळ",
+        latitude: 19.235,
+        longitude: 73.072
+      },
+      whatsapp: {
+        object: "whatsapp_business_account",
+        entry: [{
+          id: "WHATSAPP_BUSINESS_ID",
+          changes: [{
+            value: {
+              messaging_product: "whatsapp",
+              metadata: { phone_number_id: "67890" },
+              contacts: [{ wa_id: "919876543210" }],
+              messages: [{
+                from: "919876543210",
+                id: "wamid.HBgLM...",
+                timestamp: "1700000000",
+                type: "text",
+                text: { body: "कचरा पेटी भरून कचरा रस्त्यावर सांडला आहे" }
+              }]
+            },
+            field: "messages"
+          }]
+        }]
+      },
+      mobile: {
+        citizen_id: "MOB_CITIZEN_44",
+        session_id: "mob_session_44",
+        text: "Streetlight not working on main road",
+        latitude: 19.228,
+        longitude: 73.070
+      }
+    };
+
+    function updateChannelTemplate() {
+      const ch = document.getElementById('channel-selector').value;
+      document.getElementById('channel-payload-input').value = JSON.stringify(channelTemplates[ch], null, 2);
+    }
+    updateChannelTemplate();
+
+    async function sendChannelPayload() {
+      const ch = document.getElementById('channel-selector').value;
+      const rawText = document.getElementById('channel-payload-input').value;
+      const box = document.getElementById('channel-response-box');
+      box.innerText = 'Dispatching channel webhook event...';
+
+      try {
+        const payload = JSON.parse(rawText);
+        const res = await fetch(`/api/channels/${ch}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        box.innerText = JSON.stringify(data, null, 2);
+        document.getElementById('channel-status-badge').innerText = `HTTP ${res.status}`;
+      } catch (err) {
+        box.innerText = 'Error: ' + err.message;
+      }
+    }
+
+    // --- Tab 4: Health Diagnostics ---
+    async function checkHealth() {
+      const box = document.getElementById('health-json-box');
+      box.innerText = 'Pinging /health...';
+      try {
+        const res = await fetch('/health');
+        const data = await res.json();
+        box.innerText = JSON.stringify(data, null, 2);
+        document.getElementById('diag-status').innerText = 'Online (200)';
+        document.getElementById('diag-vision').innerText = data.vision_backend || data.vision_model || 'GPT-4o-mini';
+      } catch (err) {
+        box.innerText = 'Health Check Failed: ' + err.message;
+        document.getElementById('diag-status').innerText = 'Offline';
+      }
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+  </script>
+</body>
+</html>

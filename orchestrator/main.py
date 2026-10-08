@@ -1,4 +1,8 @@
 import logging
+from dotenv import load_dotenv
+
+load_dotenv()
+
 from typing import Optional, List
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -39,7 +43,7 @@ def health_check():
         "vision_model": dispatcher.civic_classifier.model,
         "vision_backend": "OpenAI Multimodal Vision (GPT-4o-mini)"
     }
-
+                    
 @app.post("/api/inference/process", response_model=FullInferencePipelineOutput)
 async def process_complaint_inference(
     citizen_id: str = Form(...),
@@ -91,3 +95,61 @@ def analyze_complaint_text(text: str = Form(...)):
         return dispatcher.nlp_analyzer.analyze(text)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+from app.core import ConversationalOrchestrator, DialogueTurnOutput
+
+conversational_orchestrator = ConversationalOrchestrator(inference_dispatcher=dispatcher)
+
+@app.post("/api/conversation/chat", response_model=DialogueTurnOutput)
+async def chat_with_wardmitra(
+    session_id: str = Form(...),
+    citizen_id: str = Form("CITIZEN_ANON"),
+    text: str = Form(...),
+    latitude: Optional[float] = Form(None),
+    longitude: Optional[float] = Form(None),
+    channel: str = Form("web"),
+    image: Optional[UploadFile] = File(None)
+):
+    """
+    Multi-turn conversational chatbot endpoint.
+    Conducts interactive dialogue in Marathi/English, collects missing slots,
+    and automatically executes the AI inference pipeline upon completion.
+    """
+    try:
+        image_bytes = await image.read() if image else None
+        return conversational_orchestrator.process_turn(
+            session_id=session_id,
+            citizen_id=citizen_id,
+            text=text,
+            latitude=latitude,
+            longitude=longitude,
+            image_bytes=image_bytes,
+            channel=channel
+        )
+    except Exception as e:
+        logger.exception(f"Conversation error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+from app.channel_adapter import channel_router, set_orchestrator
+
+set_orchestrator(conversational_orchestrator)
+app.include_router(channel_router)
+
+from pathlib import Path
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+
+STATIC_DIR = Path(__file__).resolve().parent / "static"
+if STATIC_DIR.exists():
+    app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+
+@app.get("/", include_in_schema=False)
+@app.get("/ui", include_in_schema=False)
+def serve_testing_ui():
+    index_file = STATIC_DIR / "index.html"
+    if index_file.exists():
+        return FileResponse(str(index_file))
+    return {"message": "WardMitra AI Orchestrator API is running. Visit /docs for API documentation."}
+
+
+
