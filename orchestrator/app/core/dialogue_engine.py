@@ -213,6 +213,9 @@ class ConversationalOrchestrator:
             backend_res = self.backend_client.register_complaint_sync(complaint)
             ticket_id = backend_res.get("complaint_id", "CMP-1001")
             logger.info(f"Assigned official Ticket ID: {ticket_id}")
+            # Store vector embedding into PostgreSQL pgvector table
+            if self.dispatcher and hasattr(self.dispatcher, "duplicate_detector"):
+                self.dispatcher.duplicate_detector.save_complaint_embedding(ticket_id, complaint.description or text)
 
         instruction = (
             f"Inform citizen that their complaint about '{category_info}' has been verified and registered for {ward_info} "

@@ -25,7 +25,7 @@ class AIInferenceDispatcher:
         self.profanity_checker = ProfanityChecker()
         self.nlp_analyzer = NLPAnalyzer(api_key=openai_api_key)
         self.geo_service = GeoLookupService()
-        self.duplicate_detector = DuplicateDetector()
+        self.duplicate_detector = DuplicateDetector(openai_api_key=openai_api_key)
         self.scoring_engine = SeverityScoringEngine()
         self.executor = ThreadPoolExecutor(max_workers=5)
 
@@ -97,7 +97,8 @@ class AIInferenceDispatcher:
             new_lat=latitude,
             new_lon=longitude,
             new_description=text,
-            existing_complaints=existing_complaints or []
+            existing_complaints=existing_complaints or [],
+            ward_id=geo_res.ward_id if geo_res else None
         )
 
         # 4. Severity & Priority Scoring
