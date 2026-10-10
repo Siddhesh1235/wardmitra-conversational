@@ -1,7 +1,6 @@
 # 🏛️ WardMitra: AI Conversational Orchestrator
 
-> **Empathetic, Multimodal, and Multilingual Municipal Conversational AI for Citizen Grievance Redressal**  
-> *Developed for Kalyan-Dombivli Municipal Corporation (KDMC) and Maharashtra Urban Local Bodies.*
+
 
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110.0-009688.svg?style=flat&logo=fastapi)](https://fastapi.tiangolo.com)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg?style=flat&logo=python)](https://www.python.org/)
