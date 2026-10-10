@@ -193,8 +193,9 @@ class DuplicateDetector:
     def save_complaint_embedding(self, complaint_id: Any, text: str):
         """Helper to save vector embedding in PostgreSQL."""
         try:
-            cid = int(str(complaint_id).replace("CMP-", ""))
-            asyncio.run(self._async_save_complaint_embedding(cid, text))
+            cid_digits = re.sub(r"[^\d]", "", str(complaint_id))
+            if cid_digits:
+                asyncio.run(self._async_save_complaint_embedding(int(cid_digits), text))
         except Exception as e:
             logger.warning(f"Could not save complaint embedding: {e}")
 

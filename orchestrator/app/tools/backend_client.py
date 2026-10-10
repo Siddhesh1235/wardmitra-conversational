@@ -111,9 +111,12 @@ class WardMitraBackendClient:
     def get_complaint_status_sync(self, complaint_id: str) -> Dict[str, Any]:
         """Check status synchronously."""
         url = f"{self.base_url}/complaints/{complaint_id}"
+        headers = {}
+        if self.auth_token:
+            headers["Authorization"] = f"Bearer {self.auth_token}"
         try:
             with httpx.Client(timeout=self.timeout) as client:
-                res = client.get(url)
+                res = client.get(url, headers=headers)
                 if res.status_code == 200:
                     return {"success": True, "data": res.json()}
                 return {"success": False, "status_code": res.status_code}

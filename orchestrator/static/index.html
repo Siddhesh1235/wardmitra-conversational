@@ -603,7 +603,19 @@
 
           <!-- Input Footer -->
           <div class="chat-controls">
+            <div id="chat-image-preview-bar" style="display:none; align-items:center; gap:0.5rem; background:rgba(99,102,241,0.12); border:1px solid rgba(99,102,241,0.3); padding:0.35rem 0.75rem; border-radius:var(--radius-sm); font-size:0.8rem; color:var(--text-primary); width:fit-content;">
+              <span>📷</span>
+              <span id="chat-image-preview-name" style="max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight:500;">photo.jpg</span>
+              <button type="button" onclick="clearChatImage()" style="background:none; border:none; color:var(--text-secondary); cursor:pointer; font-size:1.1rem; line-height:1; padding:0 0.2rem;" title="Remove image">&times;</button>
+            </div>
             <div class="input-row">
+              <label for="chat-file-input" class="btn btn-secondary" id="btn-chat-attach" title="Attach photo of civic issue" style="cursor:pointer; display:inline-flex; align-items:center; justify-content:center; padding:0 0.85rem; border-radius:var(--radius-md); transition:all 0.2s;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                  <circle cx="12" cy="13" r="4"></circle>
+                </svg>
+                <input type="file" id="chat-file-input" accept="image/*" style="display:none;" onchange="handleChatImageSelected(event)">
+              </label>
               <input type="text" id="chat-user-input" class="form-input" placeholder="Type your message in Marathi, Hinglish, or English..." onkeypress="handleChatEnter(event)">
               <button class="btn" id="btn-send-chat" onclick="sendChatMessage()">
                 <span>Send</span> ➔
@@ -897,6 +909,7 @@
         </div>
       `;
       updateSlotDisplay({}, false);
+      clearChatImage();
       document.getElementById('live-turn-json').innerText = JSON.stringify({ status: "reset", session_id: currentSessionId }, null, 2);
     }
 
@@ -905,28 +918,75 @@
       document.getElementById('chat-user-input').focus();
     }
 
+    let selectedChatFile = null;
+
+    function handleChatImageSelected(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      selectedChatFile = file;
+      const previewBar = document.getElementById('chat-image-preview-bar');
+      const previewName = document.getElementById('chat-image-preview-name');
+      const attachBtn = document.getElementById('btn-chat-attach');
+      if (previewBar && previewName) {
+        previewName.innerText = file.name;
+        previewBar.style.display = 'inline-flex';
+      }
+      if (attachBtn) {
+        attachBtn.style.borderColor = 'var(--accent-indigo)';
+        attachBtn.style.color = 'var(--accent-indigo)';
+      }
+    }
+
+    function clearChatImage() {
+      selectedChatFile = null;
+      const fileInput = document.getElementById('chat-file-input');
+      if (fileInput) fileInput.value = '';
+      const previewBar = document.getElementById('chat-image-preview-bar');
+      const attachBtn = document.getElementById('btn-chat-attach');
+      if (previewBar) previewBar.style.display = 'none';
+      if (attachBtn) {
+        attachBtn.style.borderColor = '';
+        attachBtn.style.color = '';
+      }
+    }
+
     function handleChatEnter(e) {
       if (e.key === 'Enter') sendChatMessage();
     }
 
     async function sendChatMessage() {
       const input = document.getElementById('chat-user-input');
-      const text = input.value.trim();
-      if (!text) return;
+      let text = input.value.trim();
+      const fileToSend = selectedChatFile;
+      if (!text && !fileToSend) return;
+
+      if (!text && fileToSend) {
+        text = "तक्रारीचा फोटो जोडला आहे.";
+      }
 
       const latEl = document.getElementById('chat-lat');
       const lonEl = document.getElementById('chat-lon');
       const lat = latEl ? parseFloat(latEl.value) || null : null;
       const lon = lonEl ? parseFloat(lonEl.value) || null : null;
 
+      // Create preview URL if image attached
+      let imgUrl = null;
+      if (fileToSend) {
+        imgUrl = URL.createObjectURL(fileToSend);
+      }
+
       // Add citizen message to UI
-      appendMessageToChat('user', text);
+      appendMessageToChat('user', text, null, imgUrl);
       input.value = '';
+      clearChatImage();
 
       const formData = new FormData();
       formData.append('session_id', currentSessionId);
       formData.append('citizen_id', 'CITIZEN_STUDIO');
       formData.append('text', text);
+      if (fileToSend) {
+        formData.append('image', fileToSend);
+      }
       if (lat) formData.append('latitude', lat);
       if (lon) formData.append('longitude', lon);
       formData.append('channel', 'web');
@@ -950,11 +1010,12 @@
       }
     }
 
-    function appendMessageToChat(role, content, ticketId = null) {
+    function appendMessageToChat(role, content, ticketId = null, imageUrl = null) {
       const chatList = document.getElementById('chat-message-list');
       const msgDiv = document.createElement('div');
       msgDiv.className = `message ${role}`;
       msgDiv.innerHTML = `
+        ${imageUrl ? `<img src="${imageUrl}" style="max-width:200px; max-height:160px; object-fit:cover; border-radius:6px; margin-bottom:8px; display:block; border:1px solid rgba(255,255,255,0.2);" alt="Attached civic photo">` : ''}
         <div>${escapeHtml(content)}</div>
         ${ticketId ? `<div class="ticket-chip">🎫 Ticket ID: ${ticketId}</div>` : ''}
         <div class="message-meta">
