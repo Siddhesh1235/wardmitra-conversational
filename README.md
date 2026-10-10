@@ -95,22 +95,7 @@ graph TD
 
 ---
 
-## 🛠️ 4. Tech Stack
-
-| Component | Technology |
-| :--- | :--- |
-| **Backend Framework** | FastAPI 0.110+, Uvicorn (ASGI) |
-| **Programming Language** | Python 3.10+ |
-| **LLM & Vision Engine** | OpenAI GPT-4o-mini, text-embedding-3-small |
-| **Session State Store** | AWS DynamoDB (Boto3) / Redis / In-Memory |
-| **Vector Database** | PostgreSQL 18 + `pgvector` extension |
-| **Computer Vision** | Ultralytics YOLO11s, Pillow, PyTorch |
-| **Data Validation** | Pydantic v2 |
-| **HTTP Clients** | HTTPX (Async & Sync) |
-
----
-
-## 🚀 5. How to Run the Project (Step-by-Step)
+## 🚀 4. How to Run the Project (Step-by-Step)
 
 ### Step 1: Clone the Repository
 ```bash
@@ -133,35 +118,7 @@ pip install -r requirements.txt
 pip install pgvector boto3 python-dotenv
 ```
 
-### Step 4: Configure Environment Variables (`.env`)
-Create or verify `.env` in the `orchestrator/` folder with the following configuration:
-
-```env
-# 1. OpenAI Configuration
-OPENAI_API_KEY=your_openai_api_key_here
-OPENAI_MODEL=gpt-4o-mini
-
-# 2. Production Node.js Backend API
-BACKEND_API_URL=https://wardmitra-api.spwhin.com/api
-BACKEND_AUTH_TOKEN=your_jwt_auth_token_here
-
-# 3. PostgreSQL + Pgvector (Deduplication)
-PG_HOST=127.0.0.1
-PG_PORT=5432
-PG_DATABASE=defaultdb
-PG_USER=postgres
-PG_PASSWORD=your_password_here
-
-# 4. AWS DynamoDB Session State
-AWS_ACCESS_KEY_ID=your_aws_key_here
-AWS_SECRET_ACCESS_KEY=your_aws_secret_here
-AWS_REGION=ap-south-1
-DYNAMODB_TABLE_NAME=wardmitra_sessions
-SESSION_STORE_TYPE=dynamodb
-SESSION_TTL_SECONDS=86400
-```
-
-### Step 5: Start the Orchestrator Server
+### Step 4: Start the Orchestrator Server
 ```bash
 uvicorn main:app --reload --port 8000
 ```
@@ -176,7 +133,7 @@ INFO:     Application startup complete.
 
 ---
 
-## 🌐 6. API Documentation & Interactive Testing
+## 🌐 5. API Documentation & Interactive Testing
 
 Open your browser and navigate to:
 👉 **[http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)**
@@ -194,59 +151,3 @@ This opens the interactive **FastAPI Swagger OpenAPI UI**.
 | `POST` | `/api/inference/moderate-media` | Media safety and NSFW filter check. |
 | `POST` | `/api/inference/nlp` | Multilingual NLP text analysis (urgency, category, summary). |
 
----
-
-## 🧪 7. Sample API Request & Response
-
-### Multi-Turn Chat Request (`POST /api/conversation/chat`)
-
-#### cURL Example:
-```bash
-curl -X POST "http://127.0.0.1:8000/api/conversation/chat" \
-  -F "session_id=session_demo_01" \
-  -F "citizen_id=CITIZEN_9876543210" \
-  -F "text=कल्याण पश्चिम, शिवाजी चौक जवळ रस्त्यावर मोठा खड्डा पडला आहे, वाहनांचे नुकसान होत आहे." \
-  -F "latitude=19.228" \
-  -F "longitude=73.070" \
-  -F "channel=web"
-```
-
-#### Successful JSON Output:
-```json
-{
-  "reply_text": "धन्यवाद! तुमची तक्रार (क्र. CMP-75BA14) 'PotHoles' अंतर्गत Ward No.53 कार्यालयाकडे यशस्वीपणे नोंदवली आहे. संबंधित कर्मचारी लवकरच यावर कार्यवाही करेल.",
-  "session_id": "session_demo_01",
-  "status": "completed",
-  "is_complete": true,
-  "missing_slots": [],
-  "collected_slots": {
-    "lang": "mr",
-    "description": "कल्याण पश्चिम, शिवाजी चौक जवळ रस्त्यावर मोठा खड्डा पडला आहे...",
-    "location": "कल्याण पश्चिम, शिवाजी चौक जवळ"
-  },
-  "structured_complaint": {
-    "citizen_id": "CITIZEN_9876543210",
-    "category": "PotHoles",
-    "priority": 2,
-    "severity": "high",
-    "title": "PotHoles issue at Ward 53",
-    "description": "There is a large pothole on the road near Shivaji Chowk in Kalyan West...",
-    "ward_id": "53",
-    "ward_name": "Kalyan-Dombivli (M Corp.) - Ward No.53",
-    "latitude": 19.228,
-    "longitude": 73.070,
-    "is_duplicate": false
-  }
-}
-```
-
----
-
-## 👥 8. Authors & Contributors
-
-- **Siddheshwar Bhagat** ([@Siddhesh1235](https://github.com/Siddhesh1235)) — *Lead Developer & AI Architect*
-- **WardMitra AI Team** — *Municipal Civic Governance Initiative*
-
----
-
-*For queries or contributions, visit [GitHub Repository](https://github.com/Siddhesh1235/wardmitra-conversational).*
