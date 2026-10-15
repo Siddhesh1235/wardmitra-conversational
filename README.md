@@ -5,7 +5,6 @@
 [![OpenAI](https://img.shields.io/badge/OpenAI-GPT--4o--mini-412991.svg?style=flat&logo=openai)](https://openai.com/)
 [![AWS DynamoDB](https://img.shields.io/badge/AWS-DynamoDB%20State%20Store-232F3E.svg?style=flat&logo=amazon-aws)](https://aws.amazon.com/dynamodb/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Pgvector%20Deduplication-336791.svg?style=flat&logo=postgresql)](https://github.com/pgvector/pgvector)
-[![Pytest](https://img.shields.io/badge/Pytest-100%25%20Passed-brightgreen.svg?style=flat&logo=pytest)](https://pytest.org/)
 
 ---
 
@@ -97,31 +96,7 @@ graph TD
 
 ---
 
-## 🧪 4. Unit Testing & Quality Assurance
-
-WardMitra includes automated unit tests covering multilingual tokenization, BM25 scoring in Marathi/English, Hybrid RAG fusion, out-of-scope guardrails, and knowledge retrieval:
-
-```powershell
-# Run the test suite
-python -m pytest tests/test_hybrid_rag.py -v
-```
-
-**Test Execution Results:**
-```text
-tests/test_hybrid_rag.py::test_tokenize_multilingual PASSED              [ 14%]
-tests/test_hybrid_rag.py::test_bm25_scorer_marathi_query PASSED          [ 28%]
-tests/test_hybrid_rag.py::test_bm25_scorer_emergency_helpline PASSED     [ 42%]
-tests/test_hybrid_rag.py::test_bm25_scorer_sla_garbage PASSED            [ 57%]
-tests/test_hybrid_rag.py::test_hybrid_knowledge_base_search PASSED       [ 71%]
-tests/test_hybrid_rag.py::test_hybrid_knowledge_base_out_of_scope PASSED [ 85%]
-tests/test_hybrid_rag.py::test_municipal_knowledge_base_wrapper PASSED   [100%]
-
-============================== 7 passed in 8.05s ==============================
-```
-
----
-
-## 🚀 5. How to Run the Project (Step-by-Step)
+## 🚀 4. How to Run the Project (Step-by-Step)
 
 ### Step 1: Clone the Repository
 ```bash
@@ -160,7 +135,7 @@ INFO:     Application startup complete.
 
 ---
 
-## 🌐 6. API Documentation & Interactive Testing
+## 🌐 5. API Documentation & Interactive Testing
 
 Open your browser and navigate to:
 👉 **[http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)** (or port `8001` if running on 8001)
