@@ -129,19 +129,27 @@ async def chat_with_wardmitra(
     except Exception as e:
         logger.exception(f"Conversation error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+from pathlib import Path
+from fastapi.responses import RedirectResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 
-from app.channel_adapter import channel_router, set_orchestrator
+STATIC_DIR = Path(__file__).resolve().parent / "static"
+if STATIC_DIR.exists():
+    app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
-set_orchestrator(conversational_orchestrator)
-app.include_router(channel_router)
-
-from fastapi.responses import RedirectResponse
+@app.get("/ui", include_in_schema=False)
+@app.get("/studio", include_in_schema=False)
+def serve_ui():
+    """Serve the interactive WardMitra AI Testing Studio."""
+    index_file = STATIC_DIR / "index.html"
+    if index_file.exists():
+        return FileResponse(index_file)
+    return RedirectResponse(url="/docs")
 
 @app.get("/", include_in_schema=False)
-@app.get("/ui", include_in_schema=False)
-def redirect_to_docs():
-    """Redirect directly to interactive Swagger API documentation."""
-    return RedirectResponse(url="/docs")
+def redirect_to_ui():
+    """Redirect root to testing studio UI."""
+    return RedirectResponse(url="/ui")
 
 
 
