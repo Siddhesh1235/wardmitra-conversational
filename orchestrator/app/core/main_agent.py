@@ -127,8 +127,12 @@ class MainConversationalAgent:
         if intent == AgentIntent.QUESTION:
             rag_res = self.knowledge_base.search(text)
             if rag_res.get("found"):
-                top_doc = rag_res["results"][0]
-                content = top_doc["content_mr"] if user_lang == "mr" else top_doc["content_en"]
+                if user_lang == "mr":
+                    content = top_doc.get("content_mr", "")
+                elif user_lang == "hi":
+                    content = top_doc.get("content_hi") or top_doc.get("content_mr", "")
+                else:
+                    content = top_doc.get("content_en", "")
                 instruction = f"Provide official answer from municipal guidelines: {content}"
             else:
                 instruction = rag_res.get("message", "माहिती उपलब्ध नाही. कृपया वॉर्ड कार्यालयात संपर्क साधा.")

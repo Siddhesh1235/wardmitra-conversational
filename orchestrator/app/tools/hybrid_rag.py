@@ -53,6 +53,7 @@ class BM25Scorer:
             combined_text = " ".join([
                 doc.get("title", ""),
                 doc.get("content_mr", ""),
+                doc.get("content_hi", ""),
                 doc.get("content_en", ""),
                 " ".join(doc.get("keywords", []))
             ])
@@ -150,7 +151,7 @@ class HybridMunicipalKnowledgeBase:
         try:
             texts_to_embed = []
             for d in self.docs:
-                txt = f"{d.get('title', '')} | {d.get('content_mr', '')} | {d.get('content_en', '')}"
+                txt = f"{d.get('title', '')} | {d.get('content_mr', '')} | {d.get('content_hi', '')} | {d.get('content_en', '')}"
                 texts_to_embed.append(txt)
 
             res = self.openai_client.embeddings.create(
