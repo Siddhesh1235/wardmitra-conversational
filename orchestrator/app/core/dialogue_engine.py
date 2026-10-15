@@ -32,7 +32,7 @@ class ConversationalOrchestrator:
         self.slot_checker = slot_checker or SlotChecker()
         self.dispatcher = inference_dispatcher or AIInferenceDispatcher(openai_api_key=self.api_key)
         self.backend_client = backend_client or WardMitraBackendClient()
-        self.knowledge_base = knowledge_base or MunicipalKnowledgeBase()
+        self.knowledge_base = knowledge_base or MunicipalKnowledgeBase(openai_api_key=self.api_key)
         self.model = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
         self.client = None
         self._init_llm()
