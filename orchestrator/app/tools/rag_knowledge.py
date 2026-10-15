@@ -3,6 +3,14 @@ Municipal Knowledge Base (RAG & Civic FAQ tool).
 Provides curated official municipal policies, filing channels, mandatory criteria,
 escalation ladders, department classifications, emergency helplines, and glossary
 in Marathi (देवनागरी), Hindi (हिंदी), and English.
+
+CRITICAL ARCHITECTURAL BOUNDARIES & SAFETY RULES:
+1. LIVE COMPLAINT STATUS: NEVER store or serve live complaint status via RAG.
+   Live status queries must always be routed directly to real-time database API (GET /api/complaints/:id).
+2. OFFICERS' PERSONAL NAMES & NUMBERS: NEVER store personal mobile numbers or names of officers.
+   Transfers are frequent; only institutional 24x7 toll-free emergency helplines are maintained.
+3. DYNAMIC CATEGORY SLA: NEVER hardcode fixed SLA hours (e.g. 24h, 48h).
+   Resolution timelines are dynamic and governed by category, priority, and department in the database.
 """
 import re
 import logging
@@ -57,16 +65,6 @@ MUNICIPAL_KNOWLEDGE_DOCS = [
         "content_en": "Upon registration, citizens receive an official ticket ID (e.g. WM-2026-XXXX) via SMS and WhatsApp. Progress updates are sent at 4 stages:\n1. Assigned to Junior Engineer (JE) / Sanitary Inspector.\n2. Work started on-site (In Progress).\n3. Work completed (with on-site resolution photo proof).\n4. Officially closed."
     },
     {
-        "id": "track_complaint_status",
-        "keywords": [
-            "status", "track", "स्थिती", "तक्रार स्थिती", "शिकायत की स्थिति", "live status", "check status", "ticket status", "माझी तक्रार", "meri shikayat"
-        ],
-        "title": "तक्रारीची सद्यस्थिती (Live Status) तपासणे",
-        "content_mr": "नागरिक चॅटमध्ये किंवा पोर्टलवर आपला 'तक्रार तिकीट क्रमांक' (Ticket ID) टाकून किंवा 'माझ्या तक्रारीची स्थिती काय आहे?' असे विचारून थेट महापालिका डेटाबेसमधून लाइव्ह स्टेटस तपासू शकतात.",
-        "content_hi": "नागरिक चैट में अपना 'शिकायत टिकट नंबर' डालकर या 'मेरी शिकायत की स्थिति क्या है?' पूछकर सीधे नगरपालिका डेटाबेस से लाइव स्थिति की जांच कर सकते हैं।",
-        "content_en": "Citizens can check real-time grievance status by entering their Ticket ID in chat/portal or asking 'What is the status of my complaint?' to retrieve live data from the municipal database."
-    },
-    {
         "id": "duplicate_detection_clustering",
         "keywords": [
             "duplicate", "cluster", "एकाच समस्येबाबत", "डुप्लिकेट तक्रार", "एक ही समस्या", "duplicate detection", "500 meter", "ekach khadda", "do baar"
@@ -96,9 +94,9 @@ MUNICIPAL_KNOWLEDGE_DOCS = [
             "garbage", "kachra", "कचरा", "कूड़ा", "कचराकुंडी", "कूड़ेदान", "dustbin", "debris", "डेब्रिज", "मलबा", "घंटागाडी", "कचरा गाड़ी", "मृत जनावरे", "swachhata", "solid waste"
         ],
         "title": "घनकचरा व्यवस्थापन विभाग (Solid Waste Management)",
-        "content_mr": "घनकचरा व्यवस्थापन विभाग:\n- समाविष्ट समस्या: कचराकुंडी भरून वाहणे (Overflowing Dustbins), रस्त्याच्या कडेला कचऱ्याचे उकिरडे, डेब्रिज (बांधकाम कचरा) टाकणे, घंटागाडी न येणे (Irregular Door-to-Door Collection), सार्वजनिक रस्त्यावरील मृत जनावरे हटवणे, भाजी मार्केटमधील कचरा साचणे.\n- तक्रार निवारण SLA: २४ तास.",
-        "content_hi": "ठोस अपशिष्ट प्रबंधन विभाग:\n- सम्मिलित समस्याएं: कूड़ेदान भर जाना (Overflowing Dustbins), सड़क किनारे कचरा फेंकना, निर्माण मलबा (Debris), कचरा गाड़ी का न आना, मृत पशुओं को हटाना, सब्जी मंडी का कचरा।\n- शिकायत निवारण SLA: २४ घंटे।",
-        "content_en": "Solid Waste Management Department handles overflowing garbage bins, illegal roadside dumps, construction debris, missed door-to-door collection vans (Ghantagadi), dead animal removal, and vegetable market waste clearance. Standard SLA: 24 hours."
+        "content_mr": "घनकचरा व्यवस्थापन विभाग:\n- समाविष्ट समस्या: कचराकुंडी भरून वाहणे (Overflowing Dustbins), रस्त्याच्या कडेला कचऱ्याचे उकिरडे, डेब्रिज (बांधकाम कचरा) टाकणे, घंटागाडी न येणे (Irregular Door-to-Door Collection), सार्वजनिक रस्त्यावरील मृत जनावरे हटवणे, भाजी मार्केटमधील कचरा साचणे.\n- तक्रार निवारण: महापालिका प्रणालीतील प्रवर्गाच्या प्राधान्यानुसार (Dynamic Category SLA) वेळेत निवारण केले जाते.",
+        "content_hi": "ठोस अपशिष्ट प्रबंधन विभाग:\n- सम्मिलित समस्याएं: कूड़ेदान भर जाना (Overflowing Dustbins), सड़क किनारे कचरा फेंकना, निर्माण मलबा (Debris), कचरा गाड़ी का न आना, मृत पशुओं को हटाना, सब्जी मंडी का कचरा।\n- शिकायत निवारण: नगर निगम प्रणाली में दर्ज श्रेणी एवं प्राथमिकता (Dynamic Category SLA) के अनुसार समयबद्ध समाधान किया जाता है।",
+        "content_en": "Solid Waste Management Department handles overflowing garbage bins, illegal roadside dumps, construction debris, missed door-to-door collection vans (Ghantagadi), dead animal removal, and vegetable market waste clearance. Resolution timeline is dynamic based on category and priority configured in the municipal system."
     },
     {
         "id": "dept_water_supply",
@@ -106,9 +104,9 @@ MUNICIPAL_KNOWLEDGE_DOCS = [
             "water", "pani", "पाणी", "पानी", "पाणीपुरवठा", "जलापूर्ति", "pipe leak", "pipeline", "गळती", "लीकेज", "कमी दाब", "कम दबाव", "दूषित पाणी", "गंदा पानी", "valve", "water pressure"
         ],
         "title": "पाणीपुरवठा विभाग (Water Supply & Hydraulic Engineering)",
-        "content_mr": "पाणीपुरवठा विभाग (Hydraulic Engineering):\n- समाविष्ट समस्या: सार्वजनिक रस्त्यावरील पिण्याच्या पाण्याच्या पाईपलाईनची गळती (Pipeline Leaks), पाणीपुरवठा बंद असणे किंवा कमी दाबाने पाणी येणे, नळाला दूषित किंवा गढूळ पाणी येणे, महापालिकेचे व्हॉल्व्ह (Valves) खराब असणे.\n- मुख्य पाईप गळती निवारण SLA: १२ ते २४ तास.",
-        "content_hi": "जल आपूर्ति एवं हाइड्रोलिक विभाग:\n- सम्मिलित समस्याएं: सार्वजनिक सड़क पर पेयजल पाइपलाइन लीकेज, पानी की आपूर्ति बंद होना या कम दबाव (Low Pressure), नलों में गंदा/दूषित पानी आना, खराब म्यूनिसिपल वाल्व।\n- मुख्य पाइपलाइन लीकेज निवारण SLA: १२ से २४ घंटे।",
-        "content_en": "Water Supply Department resolves public drinking water main pipeline bursts, supply disruptions, low water pressure, contaminated/muddy tap water, and damaged municipal sluice valves. SLA for main pipeline leak repair: 12 to 24 hours."
+        "content_mr": "पाणीपुरवठा विभाग (Hydraulic Engineering):\n- समाविष्ट समस्या: सार्वजनिक रस्त्यावरील पिण्याच्या पाण्याच्या पाईपलाईनची गळती (Pipeline Leaks), पाणीपुरवठा बंद असणे किंवा कमी दाबाने पाणी येणे, नळाला दूषित किंवा गढूळ पाणी येणे, महापालिकेचे व्हॉल्व्ह (Valves) खराब असणे.\n- तक्रार निवारण: पाईपलाईन गळती व पाणी समस्येच्या तीव्रतेनुसार डेटाबेसमधील डायनॅमिक श्रेणी SLA नियमांनुसार कार्यवाही केली जाते.",
+        "content_hi": "जल आपूर्ति एवं हाइड्रोलिक विभाग:\n- सम्मिलित समस्याएं: सार्वजनिक सड़क पर पेयजल पाइपलाइन लीकेज, पानी की आपूर्ति बंद होना या कम दबाव (Low Pressure), नलों में गंदा/दूषित पानी आना, खराब म्यूनिसिपल वाल्व।\n- निवारण समयसीमा: समस्या की गंभीरता एवं श्रेणी (Dynamic Category SLA) के आधार पर त्वरित कार्रवाई की जाती है।",
+        "content_en": "Water Supply Department resolves public drinking water main pipeline bursts, supply disruptions, low water pressure, contaminated/muddy tap water, and damaged municipal sluice valves. Resolution timeline is governed dynamically by pipeline severity and municipal category rules."
     },
     {
         "id": "dept_drainage_sewerage",
@@ -116,9 +114,9 @@ MUNICIPAL_KNOWLEDGE_DOCS = [
             "drainage", "sewer", "gutter", "gatar", "गटार", "नाली", "ड्रेनेज", "मॅनहोल", "मैनहोल", "manhole", "waterlogging", "जलभराव", "पाणी साचणे", "सांडपाणी", "सीवर"
         ],
         "title": "ड्रेनेज आणि मलनिस्सारण विभाग (Drainage & Sewerage - CRITICAL LIFE SAFETY)",
-        "content_mr": "ड्रेनेज आणि मलनिस्सारण विभाग:\n- समाविष्ट समस्या: उघडे किंवा तुटलेले मॅनहोल झाकण (Open / Broken Manhole - अतिधोकादायक व तातडीचे), तुंबलेली गटारे, सांडपाणी रस्त्यावर वाहणे, चेंबर ब्लॉक होणे, पावसाळ्यात रस्त्यावर किंवा घरांमध्ये पाणी साचणे (Waterlogging), गटाराचे चेंबर खचणे.\n- SLA: २४ ते ४८ तास. उघड्या मॅनहोलवर तात्काळ कार्यवाही केली जाते.",
-        "content_hi": "जल निकासी एवं सीवरेज विभाग:\n- सम्मिलित समस्याएं: खुला या टूटा हुआ मैनहोल ढक्कन (Open Manhole - अति-गंभीर व जीवन सुरक्षा आपातकाल), जाम नालियां, सड़क पर बहता सीवर, चेंबर ब्लॉकेज, बारिश में जलभराव (Waterlogging)।\n- निवारण SLA: २४ से ४८ घंटे (खुले मैनहोल पर आपातकालीन तत्काल कार्रवाई)।",
-        "content_en": "Drainage & Sewerage Department handles open/broken manhole covers (CRITICAL LIFE SAFETY priority), choked sewers, overflowing gutters, storm waterlogging, and sunken chamber slabs. SLA: 24 to 48 hours with immediate emergency dispatch for open manholes."
+        "content_mr": "ड्रेनेज आणि मलनिस्सारण विभाग:\n- समाविष्ट समस्या: उघडे किंवा तुटलेले मॅनहोल झाकण (Open / Broken Manhole - अतिधोकादायक व तातडीचे), तुंबलेली गटारे, सांडपाणी रस्त्यावर वाहणे, चेंबर ब्लॉक होणे, पावसाळ्यात रस्त्यावर किंवा घरांमध्ये पाणी साचणे (Waterlogging), गटाराचे चेंबर खचणे.\n- निवारण: उघड्या मॅनहोलवर तात्काळ आणीबाणी कार्यवाही; इतर समस्यांवर श्रेणीनुसार डायनॅमिक कालावधीत काम केले जाते.",
+        "content_hi": "जल निकासी एवं सीवरेज विभाग:\n- सम्मिलित समस्याएं: खुला या टूटा हुआ मैनहोल ढक्कन (Open Manhole - अति-गंभीर व जीवन सुरक्षा आपातकाल), जाम नालियां, सड़क पर बहता सीवर, चेंबर ब्लॉकेज, बारिश में जलभराव (Waterlogging)।\n- निवारण: खुले मैनहोल पर तत्काल आपातकालीन कार्रवाई; अन्य समस्याओं का समाधान श्रेणी आधारित डायनेमिक समयसीमा में किया जाता है।",
+        "content_en": "Drainage & Sewerage Department handles open/broken manhole covers (CRITICAL LIFE SAFETY priority), choked sewers, overflowing gutters, storm waterlogging, and sunken chamber slabs. Open manholes receive immediate emergency response; other issues follow dynamic category timelines."
     },
     {
         "id": "dept_electrical_streetlighting",
@@ -162,17 +160,17 @@ MUNICIPAL_KNOWLEDGE_DOCS = [
         "title": "तक्रार निवारण प्रशासकीय उतरंड (4-Tier Escalation Ladder)",
         "content_mr": "तक्रार ठरलेल्या मुदतीत न सुटल्यास आपोआप (Automated Escalation) पुढील स्तरांवर जाते:\n- Level 1: क्षेत्रीय प्रत्यक्ष काम -> कनिष्ठ अभियंता (Junior Engineer - JE) / स्वच्छता निरीक्षक (Sanitary Inspector)\n- Level 2: पर्यवेक्षी स्तर -> सहाय्यक अभियंता (Assistant Engineer - AE)\n- Level 3: कार्यकारी पुनरावलोकन -> कार्यकारी अभियंता (Executive Engineer - EE - निधी वाटपाचे अधिकार)\n- Level 4: प्रभाग सर्वोच्च प्रमुख -> प्रभाग अधिकारी (Ward Officer / सहाय्यक आयुक्त) आणि स्थानिक नगरसेवक (Ward Councillor).",
         "content_hi": "शिकायत निर्धारित समयसीमा में न सुलझने पर स्वतः उच्च अधिकारियों को एस्केलेट (Automated Escalation) होती है:\n- Level 1 (मौके पर प्रत्यक्ष काम): कनिष्ठ अभियंता (JE) / स्वच्छता निरीक्षक\n- Level 2 (पर्यवेक्षण स्तर): सहायक अभियंता (AE)\n- Level 3 (कार्यकारी समीक्षा व बजट आवंटन): अधिशासी अभियंता (EE)\n- Level 4 (प्रभाग सर्वोच्च प्रमुख): वार्ड अधिकारी (सहायक आयुक्त) एवं स्थानीय पार्षद (Ward Councillor)।",
-        "content_en": "Grievances unresolved within SLA automatically escalate through a 4-tier ladder:\n- Level 1 (Field Execution): Junior Engineer (JE) / Sanitary Inspector.\n- Level 2 (Supervisory): Assistant Engineer (AE).\n- Level 3 (Executive Review & Fund Allocation): Executive Engineer (EE).\n- Level 4 (Apex Ward Authority): Ward Officer (Assistant Commissioner) & Ward Councillor."
+        "content_en": "Grievances unresolved within dynamic category SLA automatically escalate through a 4-tier ladder:\n- Level 1 (Field Execution): Junior Engineer (JE) / Sanitary Inspector.\n- Level 2 (Supervisory): Assistant Engineer (AE).\n- Level 3 (Executive Review & Fund Allocation): Executive Engineer (EE).\n- Level 4 (Apex Ward Authority): Ward Officer (Assistant Commissioner) & Ward Councillor."
     },
     {
         "id": "reopen_complaint_ticket",
         "keywords": [
-            "reopen", "reopen ticket", "पुन्हा उघडा", "शिकायत दोबारा खोलना", "काम झाले नाही", "कामाचे समाधान नाही", "निकृष्ट काम", "48 hours", "४८ तास"
+            "reopen", "reopen ticket", "पुन्हा उघडा", "शिकायत दोबारा खोलना", "काम झाले नाही", "कामाचे समाधान नाही", "निकृष्ट काम", "reopening window"
         ],
         "title": "काम समाधानकारक न झाल्यास तक्रार पुन्हा उघडणे (Reopen Ticket)",
-        "content_mr": "जर अधिकाऱ्याने तक्रार 'निवारण झाले' (Resolved) अशी बंद केली, पण प्रत्यक्षात जागेवर काम अर्धवट किंवा निकृष्ट असेल, तर नागरिक ४८ तासांच्या आत नवीन फोटो पाठवून तक्रार पुन्हा उघडू (Reopen) शकतात.",
-        "content_hi": "यदि अधिकारी ने शिकायत 'निवारित' (Resolved) के रूप में बंद कर दी है, लेकिन मौके पर काम अधूरा या घटिया स्तर का है, तो नागरिक ४८ घंटे के भीतर नया फोटो भेजकर टिकट पुनः खोल (Reopen) सकते हैं।",
-        "content_en": "If a grievance is marked 'Resolved' but the on-site work is incomplete or unsatisfactory, citizens can reopen the ticket within 48 hours by providing a fresh photo of the unresolved issue."
+        "content_mr": "जर अधिकाऱ्याने तक्रार 'निवारण झाले' (Resolved) अशी बंद केली, पण प्रत्यक्षात जागेवर काम अर्धवट किंवा निकृष्ट असेल, तर नागरिक विहित मुदतीत नवीन फोटो पाठवून तक्रार पुन्हा उघडू (Reopen) शकतात.",
+        "content_hi": "यदि अधिकारी ने शिकायत 'निवारित' (Resolved) के रूप में बंद कर दी है, लेकिन मौके पर काम अधूरा या घटिया स्तर का है, तो नागरिक विहित समयसीमा के भीतर नया फोटो भेजकर टिकट पुनः खोल (Reopen) सकते हैं।",
+        "content_en": "If a grievance is marked 'Resolved' but the on-site work is incomplete or unsatisfactory, citizens can reopen the ticket within the designated policy window by providing a fresh photo of the unresolved issue."
     },
 
     # =========================================================================
@@ -184,8 +182,8 @@ MUNICIPAL_KNOWLEDGE_DOCS = [
             "emergency", "helpline", "112", "101", "108", "100", "1912", "आपत्कालीन", "आपातकालीन", "अग्निशामक", "दमकल", "पोलीस", "पुलिस", "रुग्णवाहिका", "एम्बुलेंस", "महावितरण"
         ],
         "title": "राष्ट्रीय व महापालिका आपत्कालीन क्रमांक (Emergency Helplines - 24x7)",
-        "content_mr": "२४ तास विनामूल्य आपत्कालीन संपर्क क्रमांक:\n- 112: सर्वसमावेशक राष्ट्रीय आपत्कालीन क्रमांक (पोलीस, अग्निशामक, रुग्णवाहिका).\n- 101: अग्निशामक दल (Fire Brigade - आग, गॅस सिलेंडर स्फोट).\n- 108: मोफत रुग्णवाहिका आणि वैद्यकीय आपत्कालीन सेवा (Ambulance).\n- 100 / 112: पोलीस नियंत्रण कक्ष (Police).\n- 1912: महावितरण / वीज वितरण आपत्कालीन सेवा (MSEDCL Live Wire, Transformer Sparking).",
-        "content_hi": "२४ घंटे टोल-फ्री राष्ट्रीय आपातकालीन हेल्पलाइन नंबर:\n- 112: एकीकृत राष्ट्रीय आपातकालीन नंबर (पुलिस, दमकल, एम्बुलेंस)।\n- 101: दमकल / अग्निशमन दल (Fire Brigade - आग, गैस सिलेंडर रिसाव)।\n- 108: निःशुल्क एम्बुलेंस एवं आपातकालीन चिकित्सा सेवा।\n- 100 / 112: पुलिस नियंत्रण कक्ष (Police)।\n- 1912: महावितरण बिजली वितरण आपातकालीन सेवा (MSEDCL Live Wire, Transformer Sparks)।",
+        "content_mr": "२४x७ विनामूल्य आपत्कालीन संपर्क क्रमांक:\n- 112: सर्वसमावेशक राष्ट्रीय आपत्कालीन क्रमांक (पोलीस, अग्निशामक, रुग्णवाहिका).\n- 101: अग्निशामक दल (Fire Brigade - आग, गॅस सिलेंडर स्फोट).\n- 108: मोफत रुग्णवाहिका आणि वैद्यकीय आपत्कालीन सेवा (Ambulance).\n- 100 / 112: पोलीस नियंत्रण कक्ष (Police).\n- 1912: महावितरण / वीज वितरण आपत्कालीन सेवा (MSEDCL Live Wire, Transformer Sparking).",
+        "content_hi": "२४x७ टोल-फ्री राष्ट्रीय आपातकालीन हेल्पलाइन नंबर:\n- 112: एकीकृत राष्ट्रीय आपातकालीन नंबर (पुलिस, दमकल, एम्बुलेंस)।\n- 101: दमकल / अग्निशमन दल (Fire Brigade - आग, गैस सिलेंडर रिसाव)।\n- 108: निःशुल्क एम्बुलेंस एवं आपातकालीन चिकित्सा सेवा।\n- 100 / 112: पुलिस नियंत्रण कक्ष (Police)।\n- 1912: महावितरण बिजली वितरण आपातकालीन सेवा (MSEDCL Live Wire, Transformer Sparks)।",
         "content_en": "24x7 Toll-Free Emergency Numbers:\n- 112: National Unified Emergency (Police, Fire, Medical).\n- 101: Fire Brigade (Fires, cylinder blasts, chemical hazards).\n- 108: Free Emergency Ambulance Medical Service.\n- 100 / 112: Police Control Room.\n- 1912: MSEDCL Power Discom Emergency (Live wires, transformer sparks)."
     },
     {
