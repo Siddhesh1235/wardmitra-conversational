@@ -1,12 +1,11 @@
 # 🏛️ WardMitra: AI Conversational Orchestrator
 
-
-
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110.0-009688.svg?style=flat&logo=fastapi)](https://fastapi.tiangolo.com)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg?style=flat&logo=python)](https://www.python.org/)
 [![OpenAI](https://img.shields.io/badge/OpenAI-GPT--4o--mini-412991.svg?style=flat&logo=openai)](https://openai.com/)
 [![AWS DynamoDB](https://img.shields.io/badge/AWS-DynamoDB%20State%20Store-232F3E.svg?style=flat&logo=amazon-aws)](https://aws.amazon.com/dynamodb/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Pgvector%20Deduplication-336791.svg?style=flat&logo=postgresql)](https://github.com/pgvector/pgvector)
+[![Pytest](https://img.shields.io/badge/Pytest-100%25%20Passed-brightgreen.svg?style=flat&logo=pytest)](https://pytest.org/)
 
 ---
 
@@ -14,7 +13,7 @@
 
 **WardMitra AI Orchestrator** is an enterprise-grade municipal conversational AI platform designed to replace tedious, rigid civic complaint forms with human-like, empathetic dialogue in **Marathi (देवनागरी), Hindi (हिंदी), and English**.
 
-Instead of a basic scripted chatbot, WardMitra features an **Agentic Supervisor Architecture** that reasons about incoming messages, extracts missing civic details dynamically, classifies civic issues from attached photos (YOLO/Vision AI), checks for duplicate complaints within a 500-meter radius using vector embeddings, answers municipal FAQs, and tracks existing complaints in real-time.
+Instead of a basic scripted chatbot, WardMitra features an **Agentic Supervisor Architecture** that reasons about incoming messages, extracts missing civic details dynamically, classifies civic issues from attached photos (YOLO/Vision AI), checks for duplicate complaints within a 500-meter radius using vector embeddings, answers municipal FAQs via **Agentic Hybrid RAG**, and tracks existing complaints in real-time.
 
 ---
 
@@ -24,7 +23,7 @@ The orchestrator operates via a **5-Branch Main Agent Routing Architecture**:
 
 ```mermaid
 graph TD
-    User([Citizen / नागरिक]) --> MainAgent[LangGraph Main Agent Supervisor]
+    User([Citizen / नागरिक]) --> MainAgent[Agentic Supervisor Architecture]
     MainAgent --> Router{Intent Classifier: What should happen next?}
 
     Router -- "1. Information Missing" --> SlotGate[Deterministic Slot Checker Gate]
@@ -38,13 +37,13 @@ graph TD
     AIIntel --> BackendAPI[Node.js Production API: Auto-Register Ticket]
     BackendAPI --> Aggregator
 
-    Router -- "4. Citizen Question / FAQ" --> RAGTool[Municipal Knowledge Base: SLA, Hours, Helplines]
-    RAGTool --> Aggregator
+    Router -- "4. Citizen Question / FAQ" --> HybridRAG[Agentic Hybrid RAG: BM25 + Vector + RRF]
+    HybridRAG --> Aggregator
 
     Router -- "5. Track Complaint" --> TrackTool[Node.js API: Real-time Ticket Status Check]
     TrackTool --> Aggregator
 
-    Aggregator --> RespGen[Bilingual Empathetic Response Generator]
+    Aggregator --> RespGen[Multilingual Empathetic Response Generator]
     RespGen --> Output([Response to Citizen])
 ```
 
@@ -67,20 +66,24 @@ graph TD
   5. `information_missing` — Civic issue reported but missing landmark/location.
   6. `chitchat` — Greetings, pleasantries, and gratitude.
 
-### 💾 C. Unified Dynamic State Manager (`app/state/state_manager.py`)
+### 🔍 C. Agentic Hybrid RAG Engine (`app/tools/hybrid_rag.py` & `app/tools/rag_knowledge.py`)
+- **Dual-Search Hybrid Architecture:**
+  - **Sparse BM25 Search:** Zero-latency lexical matcher tokenizing Devanagari, English, and civic numbers (`1912`, `101`, `Ward 53`) with stopword filtering.
+  - **Dense Vector Search:** High-dimensional semantic embeddings using OpenAI `text-embedding-3-small` (1536 dim) + PostgreSQL `pgvector`.
+  - **Reciprocal Rank Fusion (RRF):** Fuses lexical and semantic rankings for maximum precision.
+  - **Out-of-Scope Guardrails:** Detects non-civic questions and routes citizens to the official municipal helpline (`1800-233-0050`).
+- **Curated Municipal Knowledge Corpus:**
+  - **Office Timings & Visiting Hours:** (10:00 AM – 5:45 PM; public visiting: 3:00 PM – 5:00 PM; 2nd/4th Saturday closed).
+  - **Emergency Helplines:** Disaster Cell (`0251-2204060`), MSEDCL Electricity (`1912`), Fire (`101`), Police (`112`), Water (`0251-2211888`).
+  - **Citizen Charter SLAs:** Garbage (24h), Streetlights (24-48h), Potholes (48-72h), Water leaks (12-24h), Drainage (24-48h).
+  - **Civic Services:** Birth/Death certificates (21-day free window), Property Tax portal (`kdmc.gov.in`), RTI procedures with Rs. 10 court stamp.
+
+### 💾 D. Unified Dynamic State Manager (`app/state/state_manager.py`)
 - Provides a unified, resilient session storage layer across:
   - **AWS DynamoDB:** Serverless cloud session persistence with 24-hour TTL (Asia Pacific Mumbai `ap-south-1`).
   - **Redis:** In-memory cluster cache fallback with TTL support.
   - **In-Memory Store:** Zero-dependency local development fallback.
 - **Auto-Detection & Fallback:** Automatically resolves the best available backend. If network or cloud access drops, the system falls back gracefully to in-memory mode without crashing.
-- Preserves 100% backwards compatibility for legacy modules.
-
-### 📚 D. Municipal Knowledge Base & RAG Tool (`app/tools/rag_knowledge.py`)
-- Built-in authoritative knowledge base for Kalyan-Dombivli Municipal Corporation:
-  - **Office Working Hours & Visiting Timings** (10:00 AM – 5:45 PM; 2nd/4th Saturday holidays).
-  - **Emergency Helplines** (Disaster Cell, Fire, Police, Ambulance, Electricity, Water).
-  - **Citizen Charter SLAs** (Garbage: 24h, Streetlights: 24-48h, Potholes: 48-72h, Water leaks: 12-24h).
-  - **Civic Services** (Property tax portal guidelines, birth/death certificate procedures).
 
 ### 🔍 E. Semantic Deduplication with Pgvector (`app/pipeline/duplicate_detector.py`)
 - Combines **OpenAI text-embedding-3-small (1536 dimensions)** and **PostgreSQL `pgvector`** cosine distance (`<=>`).
@@ -88,13 +91,37 @@ graph TD
 - Auto-merges duplicate reports within a 500-meter radius to prevent duplicate work orders.
 
 ### 🛡️ F. Multimodal Safety & Vision Classification
-- **Content Moderation (`app/pipeline/content_moderator.py`):** HuggingFace NSFW filter blocks inappropriate uploads.
-- **Civic Classification (`app/pipeline/civic_classifier.py`):** Fine-tuned YOLO11s and multimodal vision categorizes civic issues (Garbage, Potholes, Water Leakage, Streetlight).
-- **Profanity Checker (`app/pipeline/profanity_checker.py`):** Filters abusive terms in Marathi, Hindi, and English.
+- **Content Moderation (`app/pipeline/content_moderator.py`):** HuggingFace `Falconsai/nsfw_image_detection` filter blocks inappropriate uploads.
+- **Civic Classification (`app/pipeline/civic_classifier.py`):** OpenAI GPT-4o-mini Vision categorizes civic issues into 13 classes and filters `Non_Civic` uploads.
+- **Profanity Checker (`app/pipeline/profanity_checker.py`):** Filters abusive terms in Marathi, Hindi, and English (Devanagari & Romanized).
 
 ---
 
-## 🚀 4. How to Run the Project (Step-by-Step)
+## 🧪 4. Unit Testing & Quality Assurance
+
+WardMitra includes automated unit tests covering multilingual tokenization, BM25 scoring in Marathi/English, Hybrid RAG fusion, out-of-scope guardrails, and knowledge retrieval:
+
+```powershell
+# Run the test suite
+python -m pytest tests/test_hybrid_rag.py -v
+```
+
+**Test Execution Results:**
+```text
+tests/test_hybrid_rag.py::test_tokenize_multilingual PASSED              [ 14%]
+tests/test_hybrid_rag.py::test_bm25_scorer_marathi_query PASSED          [ 28%]
+tests/test_hybrid_rag.py::test_bm25_scorer_emergency_helpline PASSED     [ 42%]
+tests/test_hybrid_rag.py::test_bm25_scorer_sla_garbage PASSED            [ 57%]
+tests/test_hybrid_rag.py::test_hybrid_knowledge_base_search PASSED       [ 71%]
+tests/test_hybrid_rag.py::test_hybrid_knowledge_base_out_of_scope PASSED [ 85%]
+tests/test_hybrid_rag.py::test_municipal_knowledge_base_wrapper PASSED   [100%]
+
+============================== 7 passed in 8.05s ==============================
+```
+
+---
+
+## 🚀 5. How to Run the Project (Step-by-Step)
 
 ### Step 1: Clone the Repository
 ```bash
@@ -114,7 +141,7 @@ python -m venv venv
 ### Step 3: Install Dependencies
 ```bash
 pip install -r requirements.txt
-pip install pgvector boto3 python-dotenv
+pip install pgvector boto3 python-dotenv pytest
 ```
 
 ### Step 4: Start the Orchestrator Server
@@ -127,15 +154,16 @@ Once started, the server will output:
 INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
 INFO:     Connected to AWS DynamoDB table 'wardmitra_sessions' in region 'ap-south-1' (TTL: 86400s)
 INFO:     Conversational LLM Client (GPT-4o-mini) initialized successfully.
+INFO:     HybridRAG: Pre-computed vector embeddings for 11 documents.
 INFO:     Application startup complete.
 ```
 
 ---
 
-## 🌐 5. API Documentation & Interactive Testing
+## 🌐 6. API Documentation & Interactive Testing
 
 Open your browser and navigate to:
-👉 **[http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)**
+👉 **[http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)** (or port `8001` if running on 8001)
 
 This opens the interactive **FastAPI Swagger OpenAPI UI**.
 
@@ -146,7 +174,6 @@ This opens the interactive **FastAPI Swagger OpenAPI UI**.
 | `GET` | `/health` | Live health check verifying all AI engines and database status. |
 | `POST` | `/api/conversation/chat` | **Main Conversational Endpoint:** Multi-turn dialogue, missing slot collection, FAQ answering, image processing, and complaint registration. |
 | `POST` | `/api/inference/process` | Direct 6-module AI pipeline execution (NSFW + YOLO + NLP + Geo + Deduplication + Scoring). |
-| `POST` | `/api/inference/classify-civic` | Standalone civic image classification using YOLO11s / Vision AI. |
+| `POST` | `/api/inference/classify-civic` | Standalone civic image classification using Vision AI. |
 | `POST` | `/api/inference/moderate-media` | Media safety and NSFW filter check. |
 | `POST` | `/api/inference/nlp` | Multilingual NLP text analysis (urgency, category, summary). |
-
