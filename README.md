@@ -20,7 +20,7 @@ Instead of a basic scripted chatbot, WardMitra features an **Agentic Supervisor 
 
 The orchestrator operates via a **5-Branch Main Agent Routing Architecture**:
 
-```mermaid
+
 graph TD
     User([Citizen / नागरिक]) --> MainAgent[Agentic Supervisor Architecture]
     MainAgent --> Router{Intent Classifier: What should happen next?}
@@ -38,7 +38,6 @@ graph TD
 
     Router -- "4. Citizen Question / FAQ" --> HybridRAG[Agentic Hybrid RAG: BM25 + Vector + RRF]
     HybridRAG --> Aggregator
-
     Router -- "5. Track Complaint" --> TrackTool[Node.js API: Real-time Ticket Status Check]
     TrackTool --> Aggregator
 
@@ -98,13 +97,7 @@ graph TD
 
 ## 🚀 4. How to Run the Project (Step-by-Step)
 
-### Step 1: Clone the Repository
-```bash
-git clone https://github.com/Siddhesh1235/wardmitra-conversational.git
-cd wardmitra-conversational/orchestrator
-```
-
-### Step 2: Create and Activate Virtual Environment
+### Step 1: Create and Activate Virtual Environment
 ```powershell
 # On Windows PowerShell:
 python -m venv venv
@@ -113,13 +106,13 @@ python -m venv venv
 
 *(On Linux / macOS: `source venv/bin/activate`)*
 
-### Step 3: Install Dependencies
+### Step 2: Install Dependencies
 ```bash
 pip install -r requirements.txt
 pip install pgvector boto3 python-dotenv pytest
 ```
 
-### Step 4: Start the Orchestrator Server
+### Step 3: Start the Orchestrator Server
 ```bash
 uvicorn main:app --reload --port 8000
 ```
