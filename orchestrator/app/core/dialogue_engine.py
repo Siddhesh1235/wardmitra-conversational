@@ -1,6 +1,6 @@
 import os
 import logging
-from typing import Optional
+from typing import Optional, Any, List, Dict
 
 from app.state.state_manager import ConversationStateManager
 from app.slot_checker.deterministic_gate import SlotChecker
@@ -29,13 +29,13 @@ class ConversationalOrchestrator:
     ):
         self.api_key = openai_api_key or os.getenv("OPENAI_API_KEY")
         self.state_mgr = state_manager or ConversationStateManager()
-        self.slot_checker = slot_checker or SlotChecker()
-        self.dispatcher = inference_dispatcher or AIInferenceDispatcher(openai_api_key=self.api_key)
-        self.backend_client = backend_client or WardMitraBackendClient()
-        self.knowledge_base = knowledge_base or MunicipalKnowledgeBase(openai_api_key=self.api_key)
         self.model = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
         self.client = None
         self._init_llm()
+        self.slot_checker = slot_checker or SlotChecker(openai_client=self.client, model=self.model)
+        self.dispatcher = inference_dispatcher or AIInferenceDispatcher(openai_api_key=self.api_key)
+        self.backend_client = backend_client or WardMitraBackendClient()
+        self.knowledge_base = knowledge_base or MunicipalKnowledgeBase(openai_api_key=self.api_key)
 
         # Initialize Main Conversational Agent (5-branch supervisor architecture)
         self.agent = MainConversationalAgent(
@@ -65,13 +65,13 @@ class ConversationalOrchestrator:
         longitude: Optional[float] = None,
         image_bytes: Optional[bytes] = None,
         media_url: Optional[str] = None,
-        channel: str = "web"
+        channel: str = "web",
+        location: Optional[Any] = None
     ) -> DialogueTurnOutput:
         """
-
-        
         Executes one full conversational turn for a citizen message
         through the 5-branch Main Agent routing architecture.
+        Supports location in [latitude, longitude] format, dict, or separate floats.
         """
         logger.info(f"Processing dialogue turn for session: {session_id}, citizen: {citizen_id}")
 
@@ -88,7 +88,8 @@ class ConversationalOrchestrator:
             latitude=latitude,
             longitude=longitude,
             image_bytes=image_bytes,
-            media_url=media_url
+            media_url=media_url,
+            location=location
         )
 
         # 4. Persist bot reply and session state

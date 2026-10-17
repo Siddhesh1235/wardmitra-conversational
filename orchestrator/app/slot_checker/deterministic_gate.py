@@ -1,7 +1,9 @@
 import re
+import json
 import logging
 from typing import Dict, Any, Optional, Tuple
-from app.slot_checker.slot_models import SlotCheckResult
+from app.slot_checker.slot_models import SlotCheckResult, CivicExtractedSlots
+from app.pipeline.geo_lookup import GeoLookupService, parse_numeric_location
 
 logger = logging.getLogger(__name__)
 
@@ -98,13 +100,56 @@ def detect_language(text: str, previous: Optional[str] = None) -> str:
 
 class SlotChecker:
     """
-    Deterministic Gate controlling conversational flow.
-    Every turn:
-      - If required slots are missing -> returns 'is_complete=False' and generates next targeted question.
-      - If all required slots are present -> returns 'is_complete=True', authorizing submission to AI Inference.
+    Intelligent Deterministic Gate controlling conversational flow.
+    Features:
+      - Pydantic structured multi-slot extraction via LLM with regex fallback
+      - Self-correction and slot overwrite detection (e.g. 'not Rambaug, Shivaji Chowk')
+      - Landmark Geo-Dictionary: auto-resolves ward and coordinates for recognized municipal landmarks
+      - Deterministic gating: is_complete=True only when all mandatory slots are filled
     """
-    def __init__(self, require_media: bool = False):
+    def __init__(
+        self,
+        require_media: bool = False,
+        openai_client: Optional[Any] = None,
+        model: str = "gpt-4o-mini"
+    ):
         self.require_media = require_media
+        self.client = openai_client
+        self.model = model
+        self.geo_service = GeoLookupService()
+
+    def extract_with_llm(self, text: str) -> Optional[CivicExtractedSlots]:
+        """Extract multi-slot civic schema from citizen text using fast structured output."""
+        if not self.client or not text or len(text.strip()) < 3:
+            return None
+        try:
+            system_prompt = (
+                "You are an AI civic slot extractor for municipal grievances in Marathi, Hindi, and English.\n"
+                "Extract grievance details into JSON conforming to these fields:\n"
+                "- category: 'pothole', 'garbage', 'drainage', 'streetlight', 'water_leak', 'tree_hazard', or null\n"
+                "- description: clear civic problem description or null\n"
+                "- landmark: specific street, road, chowk, society, building, or area or null\n"
+                "- urgency: 'LOW', 'NORMAL', 'HIGH', or 'CRITICAL' (sparking wires, water in house, open manholes are CRITICAL)\n"
+                "- is_correction: true if citizen is correcting/changing previous statement (e.g. 'nahi nahi', 'sorry not there', 'instead of'), else false\n"
+                "- correction_target: 'location', 'description', or null\n"
+                "Respond ONLY with valid JSON."
+            )
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": text}
+                ],
+                response_format={"type": "json_object"},
+                temperature=0.0,
+                max_tokens=180
+            )
+            raw_json = response.choices[0].message.content
+            parsed = json.loads(raw_json)
+            return CivicExtractedSlots(**parsed)
+        except Exception as e:
+            logger.warning(f"Structured slot extraction skipped or failed: {e}")
+            return None
 
     def extract_and_merge_slots(
         self,
@@ -112,51 +157,141 @@ class SlotChecker:
         incoming_text: Optional[str] = None,
         incoming_lat: Optional[float] = None,
         incoming_lon: Optional[float] = None,
-        incoming_media_url: Optional[str] = None
+        incoming_media_url: Optional[str] = None,
+        incoming_location: Optional[Any] = None
     ) -> Dict[str, Any]:
         """
         Extract and consolidate slot values from citizen's current input and existing state.
+        Handles:
+          - Mobile app / GPS location in [latitude, longitude] format, dict, or string
+          - OpenStreetMap Nominatim reverse geocoding for physical address
+          - Centroid Haversine ward determination
+          - Nominatim forward geocoding for textual landmarks
+          - Self-correction overwrites and multi-slot extraction
         """
         slots = dict(existing_slots or {})
 
-        # 1. Location extraction (GPS coordinates take top priority)
-        if incoming_lat is not None and incoming_lon is not None:
-            # Validate non-zero coordinates
-            if not (incoming_lat == 0.0 and incoming_lon == 0.0):
-                slots["latitude"] = float(incoming_lat)
-                slots["longitude"] = float(incoming_lon)
-                slots["has_gps"] = True
-                slots["location"] = f"GPS: {incoming_lat:.5f}, {incoming_lon:.5f}"
+        # 1. Location extraction (GPS / mobile app [latitude, longitude] takes top priority)
+        coords = None
+        if incoming_location is not None:
+            coords = parse_numeric_location(incoming_location)
+        if not coords and incoming_lat is not None and incoming_lon is not None:
+            coords = parse_numeric_location([incoming_lat, incoming_lon])
+
+        if coords:
+            lat, lon = coords
+            slots["latitude"] = lat
+            slots["longitude"] = lon
+            slots["location_coords"] = [lat, lon]
+            slots["has_gps"] = True
+
+            # Resolve official municipal ward via Centroid Haversine / Polygon & address via Nominatim
+            geo_res = self.geo_service.lookup_ward(lat, lon, fetch_address=True)
+            slots["ward_id"] = geo_res.ward_id
+            slots["ward_name"] = geo_res.ward_name
+            if geo_res.distance_to_centroid_meters is not None:
+                slots["distance_to_centroid_meters"] = geo_res.distance_to_centroid_meters
+            if geo_res.centroid_lat is not None:
+                slots["centroid_coords"] = [geo_res.centroid_lat, geo_res.centroid_lon]
+
+            # Populate friendly physical address
+            if geo_res.address:
+                slots["location"] = geo_res.address
+                slots["display_name"] = geo_res.display_name
+            elif "location" not in slots or not slots.get("location"):
+                slots["location"] = f"GPS: [{lat:.5f}, {lon:.5f}]"
 
         # 2. Media extraction
         if incoming_media_url:
             slots["media_url"] = incoming_media_url
             slots["has_media"] = True
 
-        # 3. Text analysis for description and textual location
+        # 3. Dynamic Text Analysis with Self-Correction & Landmark Resolution
         if incoming_text and incoming_text.strip():
             text = incoming_text.strip()
-            
-            # Check if text is just an affirmative / refusal for media
             lower_text = text.lower()
+
+            # Check if citizen supplied coordinates in text like "[19.2435, 73.1310]" or "19.2435, 73.1310"
+            text_coords = parse_numeric_location(text)
+            if text_coords and not slots.get("has_gps"):
+                lat, lon = text_coords
+                slots["latitude"] = lat
+                slots["longitude"] = lon
+                slots["location_coords"] = [lat, lon]
+                slots["has_gps"] = True
+                geo_res = self.geo_service.lookup_ward(lat, lon, fetch_address=True)
+                slots["ward_id"] = geo_res.ward_id
+                slots["ward_name"] = geo_res.ward_name
+                if geo_res.distance_to_centroid_meters is not None:
+                    slots["distance_to_centroid_meters"] = geo_res.distance_to_centroid_meters
+                slots["location"] = geo_res.address or f"GPS: [{lat:.5f}, {lon:.5f}]"
+
+            # Check if text is just an affirmative / refusal for media
             if any(phrase in lower_text for phrase in ["no photo", "nahi ahe", "नाही", "फोटो नाही", "no image"]):
                 slots["media_skipped"] = True
 
-            # If description not yet established or incoming is a longer elaboration
-            current_desc = slots.get("description", "")
-            if not current_desc or len(text) > len(current_desc):
-                # Ensure it's not just a location or greeting
-                if len(text.split()) > 1 and not re.match(r"^(\+?\d+|hi|hello|namaste|नमस्कार)$", lower_text):
+            # Attempt LLM Structured Multi-Slot Extraction
+            extracted = self.extract_with_llm(text)
+
+            if extracted:
+                # Handle Self-Correction (Overwrite instead of append)
+                if extracted.is_correction or any(c in lower_text for c in ["नाही नाही", "सॉरी", "sorry", "instead", "not there"]):
+                    logger.info("Self-correction detected in citizen dialogue turn.")
+                    if extracted.landmark:
+                        slots["location"] = extracted.landmark
+                        slots["location_type"] = "self_corrected_landmark"
+                        slots.pop("ward_id", None)
+                        slots.pop("ward_name", None)
+                        if not slots.get("has_gps"):
+                            slots.pop("latitude", None)
+                            slots.pop("longitude", None)
+                            slots.pop("location_coords", None)
+                    if extracted.description:
+                        slots["description"] = extracted.description
+                    if extracted.category:
+                        slots["category"] = extracted.category
+                else:
+                    # Merge extracted fields cleanly
+                    if extracted.landmark and ("location" not in slots or len(extracted.landmark) > len(slots.get("location", ""))):
+                        slots["location"] = extracted.landmark
+                        slots["location_type"] = "extracted_landmark"
+                    if extracted.description and ("description" not in slots or len(extracted.description) > len(slots.get("description", ""))):
+                        slots["description"] = extracted.description
+                    if extracted.category and "category" not in slots:
+                        slots["category"] = extracted.category
+                    if extracted.urgency:
+                        slots["urgency"] = extracted.urgency
+
+            # Fallback heuristics for location & description if LLM didn't catch them
+            if not slots.get("description") and len(text.split()) > 1:
+                if not re.match(r"^(\+?\d+|hi|hello|namaste|नमस्कार)$", lower_text):
                     slots["description"] = text
 
-            # Check if text explicitly mentions location keywords
             loc_keywords = [
                 "near", "opposite", "road", "chowk", "chawk", "गल्ली", "रस्ता", "चौक", "समोर", "जवळ",
                 "ward", "सोसायटी", "nagar", "nager", "नगर", "पश्चिम", "पूर्व", "west", "east", "market"
             ]
             if any(kw in lower_text for kw in loc_keywords) and "location" not in slots:
                 slots["location"] = text
-                slots["location_type"] = "landmark_mention"
+                slots["location_type"] = "heuristic_landmark"
+
+            # 4. OpenStreetMap Nominatim Forward Geocoding + Centroid Ward Matching
+            # If location is known textually, resolve to coordinates and ward
+            loc_str = slots.get("location")
+            if loc_str and not slots.get("has_gps"):
+                geo_match = self.geo_service.lookup_by_address_or_landmark(loc_str)
+                if geo_match:
+                    slots["ward_id"] = geo_match.ward_id
+                    slots["ward_name"] = geo_match.ward_name
+                    slots["latitude"] = geo_match.latitude
+                    slots["longitude"] = geo_match.longitude
+                    slots["location_coords"] = [geo_match.latitude, geo_match.longitude]
+                    slots["has_landmark_coords"] = True
+                    if geo_match.distance_to_centroid_meters is not None:
+                        slots["distance_to_centroid_meters"] = geo_match.distance_to_centroid_meters
+                    if geo_match.address:
+                        slots["location"] = geo_match.address
+                        slots["display_name"] = geo_match.display_name
 
         return slots
 

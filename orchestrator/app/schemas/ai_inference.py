@@ -35,10 +35,17 @@ class ProfanityCheckResult(BaseModel):
 class GeoLookupResult(BaseModel):
     latitude: float
     longitude: float
+    location: Optional[List[float]] = Field(None, description="[latitude, longitude] pair")
     ward_id: Optional[str] = None
     ward_name: Optional[str] = None
     is_within_boundary: bool = True
     councillor_id: Optional[str] = None
+    address: Optional[str] = Field(None, description="Resolved human-readable address from OpenStreetMap Nominatim")
+    display_name: Optional[str] = Field(None, description="Full Nominatim display name")
+    distance_to_centroid_meters: Optional[float] = Field(None, description="Haversine distance to ward centroid in meters")
+    centroid_lat: Optional[float] = Field(None, description="Centroid latitude of resolved ward")
+    centroid_lon: Optional[float] = Field(None, description="Centroid longitude of resolved ward")
+    resolution_method: Optional[str] = Field("haversine_centroid", description="Resolution strategy: polygon_containment | haversine_centroid | postgis | landmark_dict | nominatim_forward")
 
 class DuplicateCheckResult(BaseModel):
     is_duplicate: bool = False
@@ -65,6 +72,8 @@ class StructuredComplaintJSON(BaseModel):
     ward_name: Optional[str]
     latitude: float
     longitude: float
+    location: Optional[List[float]] = Field(None, description="[latitude, longitude] array")
+    address: Optional[str] = Field(None, description="Human-readable address from Nominatim")
     media_urls: List[str] = Field(default_factory=list)
     ai_validation_summary: Dict[str, Any] = Field(default_factory=dict)
     is_duplicate: bool = False

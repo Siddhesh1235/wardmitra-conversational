@@ -2,6 +2,7 @@ import os
 import json
 import time
 import logging
+from decimal import Decimal
 from datetime import datetime
 from typing import Optional, Dict, Any, List
 
@@ -220,7 +221,7 @@ class ConversationStateManager:
         # 1. DynamoDB
         if self._active_backend == "dynamodb" and self.dynamodb_table_resource:
             try:
-                item = json.loads(session.model_dump_json())
+                item = json.loads(session.model_dump_json(), parse_float=Decimal)
                 item["session_id"] = session.session_id
                 item["ttl"] = epoch_ttl
                 self.dynamodb_table_resource.put_item(Item=item)
@@ -307,7 +308,6 @@ class ConversationStateManager:
             "redis_url": self.redis_url if self._active_backend == "redis" else None,
             "dynamodb_table": self.table_name if self._active_backend == "dynamodb" else None,
         }
-
-
+        
 # Generic alias
 StateManager = ConversationStateManager

@@ -89,10 +89,12 @@ class MainConversationalAgent:
         latitude: Optional[float] = None,
         longitude: Optional[float] = None,
         image_bytes: Optional[bytes] = None,
-        media_url: Optional[str] = None
+        media_url: Optional[str] = None,
+        location: Optional[Any] = None
     ) -> DialogueTurnOutput:
         """
         Executes one turn through the 5-branch Agent Architecture.
+        Accepts location as [latitude, longitude] list, string, or separate floats.
         """
         # 1. Detect language
         prev_lang = session.slots.get("lang")
@@ -106,7 +108,8 @@ class MainConversationalAgent:
             incoming_text=text,
             incoming_lat=latitude,
             incoming_lon=longitude,
-            incoming_media_url=media_url
+            incoming_media_url=media_url,
+            incoming_location=location
         )
         session.slots.update(updated_slots)
 
@@ -127,6 +130,7 @@ class MainConversationalAgent:
         if intent == AgentIntent.QUESTION:
             rag_res = self.knowledge_base.search(text)
             if rag_res.get("found"):
+                top_doc = rag_res.get("results", [{}])[0] if rag_res.get("results") else {}
                 if user_lang == "mr":
                     content = top_doc.get("content_mr", "")
                 elif user_lang == "hi":
@@ -243,8 +247,26 @@ class MainConversationalAgent:
         # ==========================================
         if intent == AgentIntent.INFORMATION_MISSING or not gate_result.is_complete:
             missing_slot = gate_result.next_slot_to_ask
-            base_question = gate_result.next_question_mr if user_lang in ("mr", "hi") else gate_result.next_question_en
-            instruction = f"Acknowledge the citizen's input kindly, then ask: '{base_question}'"
+            curr_desc = session.slots.get("description", text)
+            curr_loc = session.slots.get("location")
+            curr_cat = session.slots.get("category")
+
+            if missing_slot == "location":
+                issue_summary = curr_desc if len(curr_desc) < 80 else (curr_cat or "civic issue")
+                instruction = (
+                    f"Acknowledge with empathy that the citizen is facing '{issue_summary}'. "
+                    f"Then naturally and politely ask for the exact location, road name, nearby shop, or landmark in {user_lang}."
+                )
+            elif missing_slot == "description":
+                loc_summary = curr_loc or "the mentioned area"
+                instruction = (
+                    f"Acknowledge the location '{loc_summary}' kindly. "
+                    f"Then naturally ask what specific civic problem or issue they are facing there in {user_lang}."
+                )
+            else:
+                base_question = gate_result.next_question_mr if user_lang in ("mr", "hi") else gate_result.next_question_en
+                instruction = f"Acknowledge the citizen kindly, then ask: '{base_question}'"
+
             bot_reply = self._generate_llm_response(user_lang, instruction, session.history)
 
             return DialogueTurnOutput(

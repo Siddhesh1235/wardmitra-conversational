@@ -19,3 +19,16 @@ class SlotCheckResult(BaseModel):
     next_question_mr: Optional[str] = Field(None, description="Clarifying question in Marathi")
     next_question_en: Optional[str] = Field(None, description="Clarifying question in English")
     collected_slots: Dict[str, Any] = Field(default_factory=dict, description="Consolidated valid slot values")
+
+class CivicExtractedSlots(BaseModel):
+    """
+    Pydantic schema for multi-slot extraction from natural conversation turns.
+    Extracts category, problem description, landmark/location, urgency, and self-corrections.
+    """
+    category: Optional[str] = Field(None, description="Civic category: pothole, garbage, drainage, streetlight, water_leak, tree_hazard, etc.")
+    description: Optional[str] = Field(None, description="Concise description of the problem mentioned by citizen")
+    landmark: Optional[str] = Field(None, description="Road, chowk, area, shop, society, or landmark mentioned")
+    urgency: Optional[str] = Field("NORMAL", description="Severity: LOW, NORMAL, HIGH, or CRITICAL (e.g. spark, water in house, open manhole)")
+    is_correction: bool = Field(False, description="True if the citizen is correcting or replacing previously stated information")
+    correction_target: Optional[str] = Field(None, description="Slot to correct: 'location' | 'description' | 'category'")
+

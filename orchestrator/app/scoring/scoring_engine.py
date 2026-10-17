@@ -126,6 +126,8 @@ class SeverityScoringEngine:
             ward_name=geo.ward_name,
             latitude=geo.latitude,
             longitude=geo.longitude,
+            location=[geo.latitude, geo.longitude],
+            address=geo.address,
             media_urls=media,
             ai_validation_summary=validation_summary,
             is_duplicate=duplicate.is_duplicate,
