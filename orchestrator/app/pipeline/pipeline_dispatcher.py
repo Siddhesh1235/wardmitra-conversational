@@ -20,7 +20,7 @@ class AIInferenceDispatcher:
     Central dispatcher orchestrating all 6 AI inference modules concurrently and synthesizing results.
     """
     def __init__(self, openai_api_key: Optional[str] = None):
-        self.moderator = ContentModerator()
+        self.moderator = ContentModerator(api_key=openai_api_key)
         self.civic_classifier = CivicImageClassifier(api_key=openai_api_key)
         self.profanity_checker = ProfanityChecker()
         self.nlp_analyzer = NLPAnalyzer(api_key=openai_api_key)

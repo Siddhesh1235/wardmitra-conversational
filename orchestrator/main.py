@@ -5,8 +5,9 @@ load_dotenv()
 
 from typing import Optional, List
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Request
-from fastapi.middleware.cors import CORSMiddleware
 from fastapi.concurrency import run_in_threadpool
+
+from app.web_settings import configure_cors, register_test_ui
 
 from app.schemas.ai_inference import (
     FullInferencePipelineOutput,
@@ -25,13 +26,8 @@ app = FastAPI(
     version="1.0.0"
 )
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# Only the browser origins listed in CORS_ALLOWED_ORIGINS may call the API (see app/web_settings.py)
+configure_cors(app)
 
 # Initialize central AI dispatcher
 dispatcher = AIInferenceDispatcher()
@@ -42,7 +38,9 @@ def health_check():
         "status": "healthy",
         "service": "wardmitra-conversational-orchestrator",
         "vision_model": dispatcher.civic_classifier.model,
-        "vision_backend": "OpenAI Multimodal Vision (GPT-4o-mini)"
+        "vision_backend": "OpenAI Multimodal Vision (GPT-4o-mini)",
+        # 'openai' expected; 'size_heuristic' means photos are NOT checked for NSFW content
+        "moderation_backend": dispatcher.moderator.backend
     }
                     
 from app.pipeline.geo_lookup import parse_numeric_location
@@ -232,26 +230,10 @@ def lookup_ward_by_address(query: str):
         raise HTTPException(status_code=404, detail=f"Location or landmark '{query}' could not be resolved.")
     return res
 from pathlib import Path
-from fastapi.responses import RedirectResponse, FileResponse
-from fastapi.staticfiles import StaticFiles
 
+# Testing studio at /ui only when ENABLE_TEST_UI=true (off in production)
 STATIC_DIR = Path(__file__).resolve().parent / "static"
-if STATIC_DIR.exists():
-    app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
-
-@app.get("/ui", include_in_schema=False)
-@app.get("/studio", include_in_schema=False)
-def serve_ui():
-    """Serve the interactive WardMitra AI Testing Studio."""
-    index_file = STATIC_DIR / "index.html"
-    if index_file.exists():
-        return FileResponse(index_file)
-    return RedirectResponse(url="/docs")
-
-@app.get("/", include_in_schema=False)
-def redirect_to_ui():
-    """Redirect root to testing studio UI."""
-    return RedirectResponse(url="/ui")
+register_test_ui(app, STATIC_DIR)
 
 
 
