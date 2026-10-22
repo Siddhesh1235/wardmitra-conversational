@@ -145,7 +145,8 @@ Output strictly a JSON object:
                 predicted_class=pred_class,
                 confidence=round(conf, 4),
                 top_predictions=top_items,
-                is_civic_related=is_civic
+                is_civic_related=is_civic,
+                visual_description=data.get("visual_description")
             )
 
         except Exception as e:

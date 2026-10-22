@@ -3,6 +3,7 @@ import logging
 from typing import Dict, Any, Optional
 from fastapi import APIRouter, Request, Query, Response, HTTPException
 from fastapi.responses import PlainTextResponse
+from fastapi.concurrency import run_in_threadpool
 
 from app.channel_adapter.normalizers import (
     WhatsAppNormalizer,
@@ -21,6 +22,11 @@ VERIFY_TOKEN = os.getenv("WHATSAPP_VERIFY_TOKEN", "wardmitra_verify_token_2026")
 
 # Singleton orchestrator reference injected from main app
 _orchestrator: Optional[ConversationalOrchestrator] = None
+
+def _bearer_token(request: Request) -> Optional[str]:
+    """The logged-in citizen's CouncillorApp JWT from the Authorization header, if any."""
+    header = request.headers.get("authorization", "")
+    return header.split(" ", 1)[1].strip() if header.lower().startswith("bearer ") else None
 
 def set_orchestrator(orchestrator: ConversationalOrchestrator):
     global _orchestrator
@@ -65,7 +71,8 @@ async def receive_whatsapp_message(request: Request):
         return {"status": "ignored_status_update"}
 
     orchestrator = get_orchestrator()
-    turn_output = orchestrator.process_turn(
+    turn_output = await run_in_threadpool(
+        orchestrator.process_turn,
         session_id=normalized.session_id,
         citizen_id=normalized.citizen_id,
         text=normalized.text,
@@ -85,31 +92,35 @@ async def receive_whatsapp_message(request: Request):
     }
 
 @router.post("/web", response_model=DialogueTurnOutput)
-async def receive_web_chat_message(payload: Dict[str, Any]):
+async def receive_web_chat_message(payload: Dict[str, Any], request: Request):
     """Receives Web Chat widget messages."""
     normalized = WebChatNormalizer.normalize(payload)
     orchestrator = get_orchestrator()
-    return orchestrator.process_turn(
+    return await run_in_threadpool(
+        orchestrator.process_turn,
         session_id=normalized.session_id,
         citizen_id=normalized.citizen_id,
         text=normalized.text,
         latitude=normalized.latitude,
         longitude=normalized.longitude,
         media_url=normalized.media_url,
-        channel="web"
+        channel="web",
+        auth_token=_bearer_token(request)
     )
 
 @router.post("/mobile", response_model=DialogueTurnOutput)
-async def receive_mobile_message(payload: Dict[str, Any]):
+async def receive_mobile_message(payload: Dict[str, Any], request: Request):
     """Receives Mobile App (iOS / Android) logged-in citizen messages."""
     normalized = MobileAppNormalizer.normalize(payload)
     orchestrator = get_orchestrator()
-    return orchestrator.process_turn(
+    return await run_in_threadpool(
+        orchestrator.process_turn,
         session_id=normalized.session_id,
         citizen_id=normalized.citizen_id,
         text=normalized.text,
         latitude=normalized.latitude,
         longitude=normalized.longitude,
         media_url=normalized.media_url,
-        channel="mobile"
+        channel="mobile",
+        auth_token=_bearer_token(request)
     )

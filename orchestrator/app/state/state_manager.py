@@ -25,6 +25,17 @@ DEFAULT_STORE_TYPE = os.getenv("SESSION_STORE_TYPE", "auto").lower()
 DEFAULT_KEY_PREFIX = os.getenv("SESSION_KEY_PREFIX", "wardmitra:session:")
 
 
+def _decimals_to_numbers(value: Any) -> Any:
+    """Recursively convert DynamoDB Decimal values to int (when integral) or float."""
+    if isinstance(value, Decimal):
+        return int(value) if value == value.to_integral_value() else float(value)
+    if isinstance(value, dict):
+        return {k: _decimals_to_numbers(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [_decimals_to_numbers(v) for v in value]
+    return value
+
+
 class ConversationStateManager:
     """
     Dynamic State Manager for multi-turn citizen dialogue sessions.
@@ -157,7 +168,8 @@ class ConversationStateManager:
                 item = res.get("Item")
                 if item:
                     item.pop("ttl", None)
-                    return ConversationSession(**item)
+                    # DynamoDB returns all numbers as Decimal; convert so geo/duplicate math gets floats
+                    return ConversationSession(**_decimals_to_numbers(item))
                 return None
             except Exception as e:
                 logger.warning(f"DynamoDB get_session failed ({e}). Checking memory fallback.")

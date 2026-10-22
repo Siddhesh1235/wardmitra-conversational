@@ -13,5 +13,6 @@ class DialogueTurnOutput(BaseModel):
     is_complete: bool = Field(False, description="Whether all information is collected and verified")
     missing_slots: List[str] = Field(default_factory=list, description="Slots still needed if incomplete")
     collected_slots: Dict[str, Any] = Field(default_factory=dict, description="Current slot values")
+    complaint_id: Optional[str] = Field(None, description="Backend complaint ID, only set when registration actually succeeded")
     structured_complaint: Optional[StructuredComplaintJSON] = None
     ai_inference_result: Optional[FullInferencePipelineOutput] = None

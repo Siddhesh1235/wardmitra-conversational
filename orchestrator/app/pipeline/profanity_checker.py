@@ -7,14 +7,16 @@ from app.schemas.ai_inference import ProfanityCheckResult
 MARATHI_HINDI_PROFANITIES: Set[str] = {
     # Devanagari
     "झावा", "झावण्या", "भाडखाऊ", "भाडव्या", "गांडू", "गांड", "लवडा", "लवड्या", "मादरचोद", 
-    "बहेनचोद", "भोसडीच्या", "भोसडीका", "चुत्या", "चुतिया", "रानड्या", "हरामी", "कुत्रा", 
-    "साला", "साले", "आयझव्या", "झवझव्या",
+    "बहेनचोद", "भोसडीच्या", "भोसडीका", "चुत्या", "चुतिया", "रानड्या", "हरामी",
+    "आयझव्या", "झवझव्या",
     # Romanized / Latin script
     "bhadwa", "bhadve", "bhadkhau", "gandu", "gaand", "lauda", "lavadya", "lavda", 
     "madarchod", "mc", "bc", "behenchod", "bhosdike", "bhosdichya", "bhosadike", 
     "chutiya", "chutya", "chootiya", "randi", "harami", "aaijhavya", "zhavanya", 
-    "saala", "kutta", "kamina", "fucker", "bitch", "asshole", "bastard"
+    "kamina", "fucker", "bitch", "asshole", "bastard"
 }
+# Deliberately NOT listed: "कुत्रा"/"kutta" (dog) and "साला"/"साले"/"saala" (also "brother-in-law"),
+# which appear in genuine stray-dog and neighbourhood complaints.
 
 # Whitelist safe words that contain substrings of slang (prevent false positives)
 SAFE_MARATHI_WHITELIST: Set[str] = {
@@ -61,3 +63,4 @@ class ProfanityChecker:
             toxicity_score=toxicity_score,
             action=action
         )
+

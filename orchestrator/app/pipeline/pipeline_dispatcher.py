@@ -2,7 +2,7 @@ import logging
 from typing import Optional, List, Dict, Any, Union
 from PIL import Image
 
-from app.schemas.ai_inference import FullInferencePipelineOutput
+from app.schemas.ai_inference import FullInferencePipelineOutput, DuplicateCheckResult
 from app.pipeline.content_moderator import ContentModerator
 from app.pipeline.civic_classifier import CivicImageClassifier
 from app.pipeline.profanity_checker import ProfanityChecker
@@ -37,7 +37,8 @@ class AIInferenceDispatcher:
         longitude: float,
         image_input: Optional[Union[str, bytes, Image.Image]] = None,
         existing_complaints: Optional[List[Dict[str, Any]]] = None,
-        media_urls: Optional[List[str]] = None
+        media_urls: Optional[List[str]] = None,
+        check_duplicates: bool = True
     ) -> FullInferencePipelineOutput:
         logger.info(f"Dispatching AI Inference Pipeline for Citizen: {citizen_id}")
 
@@ -90,16 +91,19 @@ class AIInferenceDispatcher:
                 rejection_reason="IMAGE_SAFETY_VIOLATION"
             )
 
-        # 3. Fraud & Duplicate Detection
+        # 3. Fraud & Duplicate Detection (skipped when the backend links duplicates itself)
         effective_category = civic_res.predicted_class if civic_res else nlp_res.extracted_category
-        dup_res = self.duplicate_detector.evaluate_duplicate(
-            new_category=effective_category,
-            new_lat=latitude,
-            new_lon=longitude,
-            new_description=text,
-            existing_complaints=existing_complaints or [],
-            ward_id=geo_res.ward_id if geo_res else None
-        )
+        if check_duplicates:
+            dup_res = self.duplicate_detector.evaluate_duplicate(
+                new_category=effective_category,
+                new_lat=latitude,
+                new_lon=longitude,
+                new_description=text,
+                existing_complaints=existing_complaints or [],
+                ward_id=geo_res.ward_id if geo_res else None
+            )
+        else:
+            dup_res = DuplicateCheckResult()
 
         # 4. Severity & Priority Scoring
         scoring_res = self.scoring_engine.calculate_score(

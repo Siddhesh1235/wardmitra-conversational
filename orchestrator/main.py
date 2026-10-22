@@ -6,6 +6,7 @@ load_dotenv()
 from typing import Optional, List
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.concurrency import run_in_threadpool
 
 from app.schemas.ai_inference import (
     FullInferencePipelineOutput,
@@ -75,7 +76,9 @@ async def process_complaint_inference(
             lat_val, lon_val = coords
 
         image_bytes = await image.read() if image else None
-        result = dispatcher.process(
+        # Run blocking OpenAI / Nominatim / pgvector calls in a worker thread, off the event loop
+        result = await run_in_threadpool(
+            dispatcher.process,
             citizen_id=citizen_id,
             text=text,
             latitude=lat_val,
@@ -92,7 +95,7 @@ async def classify_civic_image(file: UploadFile = File(...)):
     """Classify image directly using user's fine-tuned YOLO11s civic model."""
     try:
         content = await file.read()
-        return dispatcher.civic_classifier.classify_image(content)
+        return await run_in_threadpool(dispatcher.civic_classifier.classify_image, content)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -101,7 +104,7 @@ async def moderate_media_file(file: UploadFile = File(...)):
     """Check image for NSFW/violence violations."""
     try:
         content = await file.read()
-        return dispatcher.moderator.moderate_image(content)
+        return await run_in_threadpool(dispatcher.moderator.moderate_image, content)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -138,6 +141,9 @@ async def chat_with_wardmitra(
     """
     content_type = request.headers.get("content-type", "")
     image_bytes = None
+    # The logged-in citizen's CouncillorApp JWT; complaints are filed and read as this citizen
+    auth_header = request.headers.get("authorization", "")
+    auth_token = auth_header.split(" ", 1)[1].strip() if auth_header.lower().startswith("bearer ") else None
     loc_val = location
 
     if "application/json" in content_type:
@@ -168,7 +174,9 @@ async def chat_with_wardmitra(
         )
 
     try:
-        return conversational_orchestrator.process_turn(
+        # Run the blocking dialogue turn in a worker thread, off the event loop
+        return await run_in_threadpool(
+            conversational_orchestrator.process_turn,
             session_id=session_id,
             citizen_id=citizen_id,
             text=text,
@@ -176,7 +184,8 @@ async def chat_with_wardmitra(
             longitude=longitude,
             image_bytes=image_bytes,
             channel=channel,
-            location=loc_val
+            location=loc_val,
+            auth_token=auth_token
         )
     except Exception as e:
         logger.exception(f"Conversation error: {e}")

@@ -31,4 +31,9 @@ class CivicExtractedSlots(BaseModel):
     urgency: Optional[str] = Field("NORMAL", description="Severity: LOW, NORMAL, HIGH, or CRITICAL (e.g. spark, water in house, open manhole)")
     is_correction: bool = Field(False, description="True if the citizen is correcting or replacing previously stated information")
     correction_target: Optional[str] = Field(None, description="Slot to correct: 'location' | 'description' | 'category'")
+    message_type: Optional[str] = Field(
+        None,
+        description="'complaint_detail' (reports a problem or gives its location/details) | 'question' | 'confirmation' | 'other'. "
+                    "Only complaint_detail messages may fill complaint slots."
+    )
 

@@ -121,17 +121,72 @@ MUNICIPAL_KNOWLEDGE_DOCS = [
     {
         "id": "dept_electrical_streetlighting",
         "keywords": [
-            "electricity", "streetlight", "light", "दिवा", "लाईट", "बिजली", "स्ट्रीट लाइट", "खांब", "खंभा", "pole", "wire", "msedcl", "1912", "current", "विद्युत", "sparking"
+            "electricity", "streetlight", "light", "दिवा", "लाईट", "बिजली", "स्ट्रीट लाइट", "खांब", "pole", "wire", "msedcl", "1912", "current", "विद्युत"
         ],
         "title": "विद्युत आणि पथदिवा विभाग (Electrical & Street Lighting)",
-        "content_mr": "विद्युत आणि पथदिवा विभाग:\n- समाविष्ट समस्या: रात्री पथदिवा बंद असणे (Streetlight Off), दिवसा पथदिवा सुरू राहणे, विजेचा खांब वाकणे किंवा गंजणे, विजेच्या खांबावरील उघडी वायर पेटी (Exposed Junction Box).\n- महत्त्वाचे: हाय-टेन्शन ओव्हरहेड वायर स्पार्किंग, ट्रान्सफॉर्मर स्फोट किंवा मुख्य विद्युत तारा तुटल्यास महावितरण (MSEDCL) हेल्पलाइन १९१२ वर त्वरित संपर्क साधावा.",
-        "content_hi": "विद्युत एवं पथप्रकाश (Street Light) विभाग:\n- सम्मिलित समस्याएं: रात में स्ट्रीट लाइट बंद होना, दिन में अनावश्यक लाइट जलना, झुका या सड़ा हुआ बिजली का खंभा, खंभे पर खुला जंक्शन बॉक्स।\n- महत्वपूर्ण: हाई-टेंशन ओवरहेड तार स्पार्किंग, ट्रांसफार्मर ब्लास्ट या मुख्य तार टूटने पर महावितरण (MSEDCL) हेल्पलाइन १९१२ पर तुरंत कॉल करें।",
-        "content_en": "Electrical & Street Lighting Department manages non-functioning streetlights, day-burning lights, leaning/corroded poles, and exposed base junction boxes. Note: For high-tension live wire sparks or transformer explosions, contact MSEDCL helpline 1912 directly."
+        "content_mr": "विद्युत आणि पथदिवा विभाग:\n- समाविष्ट समस्या: रात्री पथदिवा बंद असणे (Streetlight Off), दिवसा पथदिवा सुरू राहणे, विजेचा खांब वाकणे किंवा गंजणे, विजेच्या खांबावरील उघडी वायर पेटी (Exposed Junction Box).\n- आपत्कालीन हेल्पलाईन: 1912 / 1800-212-3435.\n- पालिकेच्या पथदिव्यांची दुरुस्ती २४ ते ४८ तासांत केली जाते.",
+        "content_hi": "विद्युत एवं पथ प्रकाश विभाग (Electrical & Street Lighting):\n- संबंधित समस्याएं: रात में स्ट्रीट लाइट बंद होना, दिन में जलना, बिजली का खंभा झुकना, खुला जंक्शन बॉक्स।\n- महावितरण हेल्पलाइन: 1912 / 1800-212-3435। नगर निगम पथ प्रकाश 24 से 48 घंटे में ठीक किया जाता है।",
+        "content_en": "Electrical and Street Lighting Department:\n- Covers: Streetlights off at night, burning in daytime, tilted or rusted poles, open live junction boxes.\n- MSEDCL Emergency Helpline: 1912 / 1800-212-3435.\n- Municipal streetlights are repaired within 24 to 48 hours."
     },
     {
-        "id": "dept_public_health_sanitation",
+        "id": "civic_glossary_designations",
         "keywords": [
-            "fogging", "sanitation", "mosquito", "डास", "मच्छर", "फवारणी", "छिड़काव", "dengue", "malaria", "डेंगू", "मलेरिया", "सार्वजनिक शौचालय", "दुर्गंधी", "सफाई"
+            "glossary", "terms", "नगरसेवक", "पार्षद", "प्रभाग अधिकारी", "वार्ड अधिकारी", "कनिष्ठ अभियंता", "cfc", "councillor", "ward officer", "je", "शब्दकोश", "boli bhasha", "shabdavali"
+        ],
+        "title": "प्रशासकीय पदे व बहुभाषिक नागरी शब्दकोश (Designations & Glossary)",
+        "content_mr": "महापालिका प्रशासकीय पदे व शब्दकोश:\n- Ward Councillor: नगरसेवक / नगरसेविका (Parshad)\n- Ward Officer: प्रभाग अधिकारी / सहाय्यक आयुक्त (Ward Executive)\n- Junior Engineer: कनिष्ठ अभियंता (JE - जागेवर प्रत्यक्ष काम करणारे)\n- Citizen Facilitation Centre: नागरी सुविधा केंद्र (CFC).\nखड्डे (Pothole/Gaddha), कचरा (Garbage/Kooda), सांडपाणी/गटार (Gutter/Drainage), नळ गळती (Pipe Leak), पथदिवा (Streetlight).",
+        "content_hi": "नगरपालिका प्रशासनिक पद एवं बहुभाषी शब्दावली:\n- Ward Councillor: पार्षद / नगरसेवक (स्थानीय निर्वाचित जनप्रतिनिधि)\n- Ward Officer: प्रभाग अधिकारी / सहायक आयुक्त (प्रशासनिक प्रमुख)\n- Junior Engineer (JE): कनिष्ठ अभियंता (फील्ड पर काम कराने वाले अभियंता)\n- Citizen Facilitation Centre: नागरिक सुविधा केंद्र (CFC)।\nगड्ढे (Pothole/Khadda), कचरा (Garbage/Kachra), नाली/सीवर (Gutter/Drainage), पाइप लीकेज (Water Leak), स्ट्रीट लाइट (पथदिवा)।",
+        "content_en": "Municipal Designations & Vocabulary Guide:\n- Ward Councillor: नगरसेवक / नगरसेविका (Parshad / Local Elected Representative)\n- Ward Officer: प्रभाग अधिकारी / सहाय्यक आयुक्त (Ward Executive)\n- Junior Engineer (JE): कनिष्ठ अभियंता (Field Engineer)\n- Citizen Facilitation Centre (CFC): नागरी सुविधा केंद्र.\nPotholes (खड्डे / गड्ढे), Garbage (कचरा / कूड़ा), Gutter (गटार / नाली), Pipe Leak (पाईप गळती), Streetlight (पथदिवा)."
+    },
+
+    # =========================================================================
+    # 6. Municipal Office Timings, Visiting Hours & Holidays (कार्यालयीन वेळ)
+    # =========================================================================
+    {
+        "id": "office_working_hours",
+        "keywords": [
+            "office timing", "working hours", "timing", "कार्यालय वेळ", "कार्यालयाची वेळ", "वेळ काय आहे", "वेळा",
+            "कार्यालय कधी उघडते", "ऑफिस वेळ", "ऑफिस टाइमिंग", "सुट्टी", "holiday", "शनिवार", "रविवार", "विझिटिंग", "visiting hours"
+        ],
+        "title": "महानगरपालिका व वॉर्ड कार्यालयाची वेळ (Office Timings & Visiting Hours)",
+        "content_mr": "महानगरपालिका व प्रभाग (वॉर्ड) कार्यालयांची अधिकृत वेळ:\n- कामकाजाचे दिवस: सोमवार ते शनिवार.\n- कार्यालयीन वेळ: सकाळी १०:०० ते संध्याकाळी ०५:४५ वाजेपर्यंत.\n- नागरिकांसाठी अधिकाऱ्यांच्या भेटीची वेळ: दुपारी ०३:०० ते ०५:०० वाजेपर्यंत.\n- सुट्ट्या: सर्व रविवार, तसेच दर महिन्याचा २रा आणि ४था शनिवार शासकीय सुट्टी असते.\n- ऑनलाइन तक्रार सेवा: २४x७ वॉर्डमित्र बॉट व वेब पोर्टलवर सुरू असते.",
+        "content_hi": "नगर निगम एवं वार्ड कार्यालय का समय:\n- कार्य दिवस: सोमवार से शनिवार।\n- कार्यालय समय: प्रातः १०:०० बजे से सायं ०५:४५ बजे तक।\n- नागरिकों हेतु अधिकारियों से मिलने का समय: दोपहर ०३:०० से सायं ०५:०० बजे तक।\n- अवकाश: सभी रविवार तथा माह के दूसरे एवं चौथे शनिवार को कार्यालय बंद रहता है।\n- ऑनलाइन सेवा: वार्डमित्र बॉट पर २४x७ शिकायत दर्ज की जा सकती है।",
+        "content_en": "Municipal & Ward Office Official Timings:\n- Working Days: Monday to Saturday.\n- Office Hours: 10:00 AM to 05:45 PM.\n- Citizen Visiting Hours with Officers: 03:00 PM to 05:00 PM.\n- Holidays: All Sundays, and 2nd & 4th Saturdays of every month.\n- 24x7 Digital Service: WardMitra WhatsApp bot and portal remain active round the clock."
+    },
+
+    # =========================================================================
+    # 7. Citizen Certificates & Documentation (दाखले व आवश्यक कागदपत्रे)
+    # =========================================================================
+    {
+        "id": "citizen_certificates_docs",
+        "keywords": [
+            "certificate", "birth certificate", "death certificate", "दाखला", "जन्म दाखला", "मृत्यू दाखला",
+            "कागदपत्रे", "documents required", "प्रमाणपत्र", "cfc", "अर्ज", "fees"
+        ],
+        "title": "जन्म-मृत्यू दाखला व आवश्यक कागदपत्रे (Certificates & Documents)",
+        "content_mr": "नागरी दाखले मिळवण्याची अधिकृत प्रक्रिया:\n१. जन्म दाखला (Birth Certificate):\n- आवश्यक कागदपत्रे: रुग्णालयाचा डिस्चार्ज कार्ड किंवा जन्म नोंद पावती, आई-वडिलांचे आधार कार्ड.\n- अर्ज: नागरी सुविधा केंद्र (CFC) किंवा अधिकृत महापालिका संकेतस्थळावरून.\n- कालावधी: विहित मुदतीत मोफत, त्यानंतर नियमांनुसार विलंब शुल्क.\n२. मृत्यू दाखला (Death Certificate):\n- आवश्यक कागदपत्रे: स्मशानभूमी पावती / दफन पावती, डॉक्टरांचे वैद्यकीय मृत्यू प्रमाणपत्र, मयताचे व अर्जदाराचे आधार कार्ड.\n- अर्ज केंद्र: संबंधित वॉर्डातील CFC केंद्र किंवा महापालिका पोर्टल.",
+        "content_hi": "जन्म-मृत्यु प्रमाण पत्र प्रक्रिया एवं आवश्यक दस्तावेज:\n१. जन्म प्रमाण पत्र (Birth Certificate):\n- आवश्यक दस्तावेज: अस्पताल डिस्चार्ज कार्ड/जन्म पर्ची, माता-पिता का आधार कार्ड।\n- आवेदन: नागरिक सुविधा केंद्र (CFC) या आधिकारिक पोर्टल से।\n२. मृत्यु प्रमाण पत्र (Death Certificate):\n- आवश्यक दस्तावेज: श्मशान/कब्रिस्तान पावती, डॉक्टर का मृत्यु प्रमाण पत्र, मृतक एवं आवेदक का आधार कार्ड।\n- आवेदन: संबंधित वार्ड का CFC केंद्र।",
+        "content_en": "Civil Certificates & Mandatory Documentation:\n1. Birth Certificate: Hospital discharge card/birth slip, parents' Aadhaar cards. Apply via Citizen Facilitation Centre (CFC) or municipal portal.\n2. Death Certificate: Crematorium/burial receipt, doctor's medical death certificate, Aadhaar of deceased and applicant. Apply at the respective Ward CFC counter."
+    },
+
+    # =========================================================================
+    # 8. Property Tax Assessment & Payment (मालमत्ता कर भरणा व सुविधा)
+    # =========================================================================
+    {
+        "id": "property_tax_services",
+        "keywords": [
+            "property tax", "tax", "घरपट्टी", "मालमत्ता कर", "कर भरणा", "पावती", "tax payment", "assessment", "सूट", "discount"
+        ],
+        "title": "मालमत्ता कर (Property Tax) भरणा व मार्गदर्शन",
+        "content_mr": "मालमत्ता कर (Property Tax) मार्गदर्शक:\n- भरणा माध्यम: महापालिकेच्या अधिकृत वेब पोर्टलवर ऑनलाइन किंवा जवळच्या नागरी सुविधा केंद्रात (CFC) रोख/कार्ड/चेकद्वारे.\n- आवश्यक माहिती: मालमत्ता क्रमांक (Property Index / Consumer No.) किंवा जुनी कर पावती.\n- सवलत: आर्थिक वर्षाच्या सुरुवातीला विहित मुदतीत आगाऊ संपूर्ण कर भरणाऱ्या मालमत्ताधारकांना सामान्य करात विशेष सवलत मिळते.",
+        "content_hi": "संपत्ति कर (Property Tax) भुगतान प्रक्रिया:\n- भुगतान का माध्यम: नगर निगम के आधिकारिक पोर्टल पर ऑनलाइन अथवा नजदीकी नागरिक सुविधा केंद्र (CFC) में नकद/कार्ड/चेक द्वारा।\n- आवश्यक विवरण: संपत्ति खाता संख्या (Property Index / Consumer No.) अथवा पुरानी रसीद।\n- छूट: वित्तीय वर्ष के प्रारंभ में अग्रिम कर भुगतान करने पर नियमानुसार विशेष छूट मिलती है।",
+        "content_en": "Property Tax Payment Guidelines:\n- Payment Modes: Online via the official municipal portal or in-person at any Citizen Facilitation Centre (CFC) via cash, card, or cheque.\n- Required Details: Property Index / Consumer Number or previous tax receipt.\n- Early Rebate: Citizens paying full annual tax in advance within the designated early window receive special percentage rebates."
+    }
+,
+    {
+        "id": "dept_health_sanitation",
+        "keywords": [
+            "health", "dengue", "malaria", "डेंगू", "मलेरिया", "सार्वजनिक शौचालय", "दुर्गंधी", "सफाई", "fogging"
         ],
         "title": "सार्वजनिक आरोग्य व स्वच्छता विभाग (Public Health & Sanitation)",
         "content_mr": "सार्वजनिक आरोग्य व स्वच्छता विभाग:\n- समाविष्ट समस्या: साचलेल्या पाण्यामुळे डासांची उत्पत्ती, मलेरिया/डेंग्यू धुरफवारणी (Fogging) न होणे, सार्वजनिक शौचालयांची अस्वच्छता, सार्वजनिक ठिकाणी दुर्गंधी व कीटक नियंत्रण.",

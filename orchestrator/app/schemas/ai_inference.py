@@ -16,6 +16,7 @@ class CivicClassificationResult(BaseModel):
     confidence: float = Field(..., description="Top-1 confidence score (0.0 to 1.0)")
     top_predictions: List[CivicPredictionItem] = Field(default_factory=list)
     is_civic_related: bool = Field(True, description="False if classified as non-civic / unrelated")
+    visual_description: Optional[str] = Field(None, description="One-sentence description of what the photo shows")
 
 class NLPAnalysisResult(BaseModel):
     intent: str = Field("register_complaint", description="register_complaint | status_check | inquiry | casual")
